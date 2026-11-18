@@ -10,7 +10,7 @@ import { Product } from '../../models/marketplace.model';
   imports: [MatIconModule, ProductCard],
   template: `
     @if (product(); as p) {
-      <div class="bg-[#FAF8F5] min-h-screen pb-16">
+      <div class="bg-[#F7F8F5] min-h-screen pb-16">
         
         <!-- Breadcrumb & Top Bar Navigation -->
         <div class="bg-white border-b border-[#E5E7EB]">
@@ -143,27 +143,6 @@ import { Product } from '../../models/marketplace.model';
                 </div>
               }
 
-              <!-- Government Authenticity & Direct Benefit Banner -->
-              <div class="p-4 sm:p-5 bg-emerald-50/80 rounded-2xl border border-emerald-200/80 space-y-2">
-                <div class="flex items-center gap-2 text-[#0D5C3A]">
-                  <mat-icon class="!w-5 !h-5 !text-[22px]">assured_workload</mat-icon>
-                  <span class="font-extrabold text-sm sm:text-base">Ministry of Rural Development Authenticity Guarantee</span>
-                </div>
-                <p class="text-xs text-emerald-950 leading-relaxed">
-                  Every product listed on BharatHaat / Bharat Shilp is dispatched directly from registered Self Help Groups (SHGs) and weaver cooperatives. 100% of fair value reaches the artisan's Jan Dhan account via Direct Benefit Transfer (DBT) with zero platform commissions.
-                </p>
-                <div class="pt-1 flex flex-wrap items-center gap-4 text-xs font-bold text-emerald-900">
-                  <span class="flex items-center gap-1">
-                    <mat-icon class="!w-4 !h-4 !text-[16px] text-[#0D5C3A]">verified</mat-icon>
-                    <span>GI Registry Certificate: {{ p.specifications.certification || 'Verified' }}</span>
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <mat-icon class="!w-4 !h-4 !text-[16px] text-[#0D5C3A]">local_shipping</mat-icon>
-                    <span>India Post Speed Post Insured Transit</span>
-                  </span>
-                </div>
-              </div>
-
             </div>
 
             <!-- RIGHT COLUMN: Purchase Module & Specifications (Span 5) -->
@@ -171,19 +150,19 @@ import { Product } from '../../models/marketplace.model';
               
               <!-- Category & Origin Kicker -->
               <div class="flex flex-wrap items-center gap-2 text-xs text-[#667085]">
-                <span class="font-bold text-[#0D5C3A] uppercase tracking-wider">{{ p.category }}</span>
+                <span class="font-semibold text-[#0D5C3A] uppercase tracking-wider">{{ p.category }}</span>
                 <span>•</span>
                 <span>{{ p.district }}, {{ p.state }}</span>
                 @if (p.isOdop) {
                   <span class="bg-amber-100 text-[#92400E] font-bold px-2 py-0.5 rounded text-[10px]">
-                    ODOP Official Product
+                    ODOP
                   </span>
                 }
               </div>
 
               <!-- Product Headline -->
               <div>
-                <h1 class="text-2xl sm:text-3xl font-black text-[#11233B] leading-tight font-serif">
+                <h1 class="text-2xl sm:text-3xl font-semibold text-[#11233B] leading-tight break-words">
                   {{ market.currentLanguage() === 'en' ? p.name : (p.hindiName || p.name) }}
                 </h1>
                 @if (p.hindiName && market.currentLanguage() === 'en') {
@@ -200,13 +179,9 @@ import { Product } from '../../models/marketplace.model';
                     <mat-icon class="!w-5 !h-5 !text-[22px]">diversity_3</mat-icon>
                   </div>
                   <div class="min-w-0">
-                    <div class="text-[10px] text-[#667085] uppercase tracking-wider font-semibold">Artisan Producer:</div>
+                    <div class="text-[10px] text-[#667085] uppercase tracking-wider font-semibold">Made by</div>
                     <div class="font-bold text-[#11233B] truncate">{{ p.sellerName }}</div>
-                    <div class="text-[10px] text-emerald-800 font-semibold flex items-center gap-1">
-                      <span>Verified {{ p.sellerType }}</span>
-                      <span>·</span>
-                      <span>Reg: {{ p.sellerId }}</span>
-                    </div>
+                    <div class="text-[10px] text-[#667085]">{{ p.sellerType }} · {{ p.district }}, {{ p.state }}</div>
                   </div>
                 </div>
 
@@ -214,7 +189,7 @@ import { Product } from '../../models/marketplace.model';
                   type="button"
                   (click)="filterBySeller(p.sellerName)"
                   class="px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold text-[#0D5C3A] shrink-0 transition-colors cursor-pointer">
-                  View Cluster
+                  More from maker
                 </button>
               </div>
 
@@ -224,11 +199,11 @@ import { Product } from '../../models/marketplace.model';
                   <mat-icon class="!w-4 !h-4 !text-[18px]">star</mat-icon>
                   <span class="text-[#1D2939] ml-1 text-sm">{{ p.rating }}</span>
                 </div>
-                <span class="text-[#667085]">({{ p.reviewCount }} verified citizen reviews)</span>
+                <span class="text-[#667085]">({{ p.reviewCount }} reviews)</span>
                 <span class="text-slate-300">|</span>
                 <span class="text-emerald-700 font-bold flex items-center gap-0.5">
                   <mat-icon class="!w-3.5 !h-3.5 !text-[14px]">check_circle</mat-icon>
-                  <span>In Stock ({{ p.stockCount }} units left)</span>
+                  <span>In stock</span>
                 </span>
               </div>
 
@@ -247,17 +222,12 @@ import { Product } from '../../models/marketplace.model';
                     </span>
                   }
                 </div>
-                <div class="text-xs text-[#475467] flex items-center gap-2 pt-0.5">
-                  <span>Inclusive of all GST taxes</span>
-                  <span>•</span>
-                  <span class="text-[#0D5C3A] font-bold">Free India Post Speed Post Delivery</span>
-                </div>
               </div>
 
               <!-- PIN Code Delivery Check -->
               <div class="space-y-1.5 pt-1">
                 <label for="pdp-pincode" class="block text-xs font-bold text-[#11233B]">
-                  Check Speed Post Delivery & Cluster Dispatch:
+                  Check delivery options
                 </label>
                 <div class="flex items-center gap-2">
                   <input
@@ -266,7 +236,7 @@ import { Product } from '../../models/marketplace.model';
                     maxlength="6"
                     [value]="pincodeInput()"
                     (input)="pincodeInput.set($any($event.target).value)"
-                    placeholder="Enter 6-digit PIN code (e.g. 110001)"
+                    placeholder="6-digit PIN code"
                     class="px-3.5 py-2.5 text-xs bg-white border border-[#D1D5DB] rounded-lg focus:outline-none focus:border-[#0D5C3A] flex-1 text-[#1D2939]"
                   />
                   <button
@@ -324,7 +294,7 @@ import { Product } from '../../models/marketplace.model';
                   (click)="addToCart()"
                   class="w-full py-3.5 px-4 bg-emerald-50 hover:bg-emerald-100 border-2 border-[#0D5C3A] text-[#0D5C3A] font-bold text-xs sm:text-sm rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs">
                   <mat-icon class="!w-5 !h-5 !text-[20px]">add_shopping_cart</mat-icon>
-                  <span>Add to Shopping Bag</span>
+                  <span>Add to bag</span>
                 </button>
 
                 <button
@@ -347,34 +317,15 @@ import { Product } from '../../models/marketplace.model';
                 <span>{{ isWishlisted() ? 'Saved in Your Wishlist' : 'Add to Wishlist' }}</span>
               </button>
 
-              <!-- Trust & Citizen Protections Strip -->
-              <div class="pt-4 border-t border-slate-200 grid grid-cols-3 gap-2 text-center text-[10px] text-[#667085]">
-                <div class="p-2 bg-slate-50 rounded-lg">
-                  <mat-icon class="!w-4 !h-4 !text-[16px] text-[#0D5C3A] mx-auto block mb-0.5">verified_user</mat-icon>
-                  <span class="font-bold text-[#11233B]">100% Genuine</span>
-                  <div>Direct Craft Origin</div>
-                </div>
-                <div class="p-2 bg-slate-50 rounded-lg">
-                  <mat-icon class="!w-4 !h-4 !text-[16px] text-sky-700 mx-auto block mb-0.5">local_shipping</mat-icon>
-                  <span class="font-bold text-[#11233B]">Speed Post</span>
-                  <div>Insured Delivery</div>
-                </div>
-                <div class="p-2 bg-slate-50 rounded-lg">
-                  <mat-icon class="!w-4 !h-4 !text-[16px] text-amber-700 mx-auto block mb-0.5">autorenew</mat-icon>
-                  <span class="font-bold text-[#11233B]">7-Day Return</span>
-                  <div>CPGRAMS Protection</div>
-                </div>
-              </div>
-
             </div>
 
           </div>
 
           <!-- Deep-Dive Details Tabs Section -->
-          <div class="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-6 sm:p-8 space-y-6">
+          <div class="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-4 sm:p-7 space-y-6">
             
             <!-- Tab Headers -->
-            <div class="flex items-center gap-3 border-b border-slate-200 overflow-x-auto no-scrollbar pb-1 text-xs sm:text-sm font-bold">
+            <div class="flex items-center gap-4 border-b border-slate-200 overflow-x-auto no-scrollbar pb-1 text-xs sm:text-sm font-semibold">
               
               <button
                 type="button"
@@ -385,7 +336,7 @@ import { Product } from '../../models/marketplace.model';
                 [class.text-[#667085]]="activeTab() !== 'description'"
                 class="pb-3 border-b-2 hover:text-[#0D5C3A] transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5">
                 <mat-icon class="!w-4 !h-4 !text-[18px]">article</mat-icon>
-                <span>Description & Craft Technique</span>
+                <span>Description</span>
               </button>
 
               <button
@@ -397,7 +348,7 @@ import { Product } from '../../models/marketplace.model';
                 [class.text-[#667085]]="activeTab() !== 'story'"
                 class="pb-3 border-b-2 hover:text-[#0D5C3A] transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5">
                 <mat-icon class="!w-4 !h-4 !text-[18px]">diversity_1</mat-icon>
-                <span>Artisan Heritage & Cluster Story</span>
+                <span>Craft story</span>
               </button>
 
               <button
@@ -409,7 +360,7 @@ import { Product } from '../../models/marketplace.model';
                 [class.text-[#667085]]="activeTab() !== 'specs'"
                 class="pb-3 border-b-2 hover:text-[#0D5C3A] transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5">
                 <mat-icon class="!w-4 !h-4 !text-[18px]">tune</mat-icon>
-                <span>Technical Specifications</span>
+                <span>Details</span>
               </button>
 
               <button
@@ -421,7 +372,7 @@ import { Product } from '../../models/marketplace.model';
                 [class.text-[#667085]]="activeTab() !== 'shipping'"
                 class="pb-3 border-b-2 hover:text-[#0D5C3A] transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5">
                 <mat-icon class="!w-4 !h-4 !text-[18px]">local_shipping</mat-icon>
-                <span>Shipping & Return Policy</span>
+                <span>Delivery</span>
               </button>
 
               <button
@@ -433,30 +384,23 @@ import { Product } from '../../models/marketplace.model';
                 [class.text-[#667085]]="activeTab() !== 'reviews'"
                 class="pb-3 border-b-2 hover:text-[#0D5C3A] transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5">
                 <mat-icon class="!w-4 !h-4 !text-[18px]">star_outline</mat-icon>
-                <span>Citizen Reviews ({{ p.reviews.length }})</span>
+                <span>Reviews ({{ p.reviews.length }})</span>
               </button>
 
             </div>
 
             <!-- TAB 1: Description -->
             @if (activeTab() === 'description') {
-              <div class="space-y-4 text-xs sm:text-sm text-[#1D2939] leading-relaxed">
+              <div class="space-y-5 text-xs sm:text-sm text-[#1D2939] leading-relaxed">
                 <p>{{ p.description }}</p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
-                  <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <div class="text-[11px] font-bold text-[#667085] uppercase tracking-wider">Traditional Technique</div>
-                    <div class="font-extrabold text-sm text-[#11233B] mt-1">{{ p.category }}</div>
-                    <p class="text-xs text-[#667085] mt-1">Handmade using time-honored Indian guild methods passed through generations.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="p-4 bg-[#F7F8F5] rounded-xl border border-slate-200">
+                    <div class="text-[11px] font-semibold text-[#667085] uppercase tracking-wider">Craft</div>
+                    <div class="font-semibold text-sm text-[#11233B] mt-1">{{ p.category }}</div>
                   </div>
-                  <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <div class="text-[11px] font-bold text-[#667085] uppercase tracking-wider">GI Certification</div>
-                    <div class="font-extrabold text-sm text-[#11233B] mt-1">{{ p.isGI ? 'Registered GI Status' : 'Certified Heritage Craft' }}</div>
-                    <p class="text-xs text-[#667085] mt-1">Legally protected against industrial machine duplication under Indian law.</p>
-                  </div>
-                  <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <div class="text-[11px] font-bold text-[#667085] uppercase tracking-wider">Support Scheme</div>
-                    <div class="font-extrabold text-sm text-[#11233B] mt-1">DAY-NRLM / TRIFED / ODOP</div>
-                    <p class="text-xs text-[#667085] mt-1">Empowering rural women and indigenous producers through direct digital market linkages.</p>
+                  <div class="p-4 bg-[#F7F8F5] rounded-xl border border-slate-200">
+                    <div class="text-[11px] font-semibold text-[#667085] uppercase tracking-wider">Origin</div>
+                    <div class="font-semibold text-sm text-[#11233B] mt-1">{{ p.district }}, {{ p.state }}</div>
                   </div>
                 </div>
               </div>
@@ -464,22 +408,20 @@ import { Product } from '../../models/marketplace.model';
 
             <!-- TAB 2: Heritage Story -->
             @if (activeTab() === 'story') {
-              <div class="bg-amber-50/50 p-6 rounded-2xl border border-amber-200/80 space-y-4 text-xs sm:text-sm leading-relaxed">
+              <div class="bg-[#F7F8F5] p-5 sm:p-6 rounded-2xl border border-slate-200 space-y-4 text-xs sm:text-sm leading-relaxed">
                 <div class="flex items-center gap-2">
-                  <mat-icon class="!w-5 !h-5 !text-[22px] text-[#C25E1A]">history_edu</mat-icon>
-                  <h3 class="text-base font-bold text-[#11233B]">The Heritage Legacy of {{ p.name }}</h3>
+                  <mat-icon class="!w-5 !h-5 !text-[22px] text-[#0D5C3A]">history_edu</mat-icon>
+                  <h3 class="text-base font-semibold text-[#11233B]">About this craft</h3>
                 </div>
                 <p class="text-[#1D2939]">{{ p.craftStory }}</p>
-                <div class="p-4 bg-white rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+                <div class="p-4 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
                   <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-emerald-100 text-[#0D5C3A] flex items-center justify-center font-bold text-xl shrink-0">
-                      🇮🇳
+                    <div class="w-12 h-12 rounded-full bg-emerald-100 text-[#0D5C3A] flex items-center justify-center shrink-0">
+                      <mat-icon class="!w-6 !h-6 !text-[24px]">diversity_3</mat-icon>
                     </div>
                     <div>
-                      <div class="font-bold text-[#11233B]">Direct Artisan Impact</div>
-                      <div class="text-[#667085] mt-0.5">
-                        Your purchase directly supports {{ p.sellerName }} in {{ p.district }}, {{ p.state }}. By supporting this craft, you help preserve indigenous knowledge and ensure fair livelihood security.
-                      </div>
+                      <div class="font-semibold text-[#11233B]">{{ p.sellerName }}</div>
+                      <div class="text-[#667085] mt-0.5">{{ p.district }}, {{ p.state }}</div>
                     </div>
                   </div>
 
@@ -497,42 +439,42 @@ import { Product } from '../../models/marketplace.model';
             <!-- TAB 3: Technical Specifications -->
             @if (activeTab() === 'specs') {
               <div class="space-y-4">
-                <table class="w-full text-xs sm:text-sm border-collapse">
+                <table class="w-full table-fixed text-xs sm:text-sm border-collapse">
                   <tbody>
                     <tr class="border-b border-slate-200">
-                      <td class="py-3 px-4 font-bold text-[#667085] w-1/3 bg-slate-50">Material / Composition:</td>
-                      <td class="py-3 px-4 font-semibold text-[#11233B]">{{ p.specifications.material }}</td>
+                      <td class="py-3 px-3 sm:px-4 font-semibold text-[#667085] w-1/3 bg-slate-50 break-words">Material</td>
+                      <td class="py-3 px-3 sm:px-4 font-medium text-[#11233B] break-words">{{ p.specifications.material }}</td>
                     </tr>
                     <tr class="border-b border-slate-200">
-                      <td class="py-3 px-4 font-bold text-[#667085] bg-slate-50">Origin Cluster:</td>
-                      <td class="py-3 px-4 font-semibold text-[#11233B]">{{ p.specifications.origin }}</td>
+                      <td class="py-3 px-3 sm:px-4 font-semibold text-[#667085] bg-slate-50 break-words">Origin</td>
+                      <td class="py-3 px-3 sm:px-4 font-medium text-[#11233B] break-words">{{ p.specifications.origin }}</td>
                     </tr>
                     @if (p.specifications.dimensions) {
                       <tr class="border-b border-slate-200">
-                        <td class="py-3 px-4 font-bold text-[#667085] bg-slate-50">Dimensions:</td>
-                        <td class="py-3 px-4 font-semibold text-[#11233B]">{{ p.specifications.dimensions }}</td>
+                        <td class="py-3 px-3 sm:px-4 font-semibold text-[#667085] bg-slate-50 break-words">Dimensions</td>
+                        <td class="py-3 px-3 sm:px-4 font-medium text-[#11233B] break-words">{{ p.specifications.dimensions }}</td>
                       </tr>
                     }
                     @if (p.specifications.weight) {
                       <tr class="border-b border-slate-200">
-                        <td class="py-3 px-4 font-bold text-[#667085] bg-slate-50">Weight:</td>
-                        <td class="py-3 px-4 font-semibold text-[#11233B]">{{ p.specifications.weight }}</td>
+                        <td class="py-3 px-3 sm:px-4 font-semibold text-[#667085] bg-slate-50 break-words">Weight</td>
+                        <td class="py-3 px-3 sm:px-4 font-medium text-[#11233B] break-words">{{ p.specifications.weight }}</td>
                       </tr>
                     }
                     @if (p.specifications.artisanCluster) {
                       <tr class="border-b border-slate-200">
-                        <td class="py-3 px-4 font-bold text-[#667085] bg-slate-50">Artisan Craft Park / Cluster:</td>
-                        <td class="py-3 px-4 font-semibold text-[#11233B]">{{ p.specifications.artisanCluster }}</td>
+                        <td class="py-3 px-3 sm:px-4 font-semibold text-[#667085] bg-slate-50 break-words">Craft cluster</td>
+                        <td class="py-3 px-3 sm:px-4 font-medium text-[#11233B] break-words">{{ p.specifications.artisanCluster }}</td>
                       </tr>
                     }
                     <tr class="border-b border-slate-200">
-                      <td class="py-3 px-4 font-bold text-[#667085] bg-slate-50">Care & Maintenance:</td>
-                      <td class="py-3 px-4 font-medium text-[#11233B]">{{ p.specifications.careInstructions }}</td>
+                      <td class="py-3 px-3 sm:px-4 font-semibold text-[#667085] bg-slate-50 break-words">Care</td>
+                      <td class="py-3 px-3 sm:px-4 font-medium text-[#11233B] break-words">{{ p.specifications.careInstructions }}</td>
                     </tr>
                     @if (p.specifications.certification) {
                       <tr class="bg-emerald-50/60">
-                        <td class="py-3 px-4 font-bold text-[#0D5C3A] bg-emerald-100/50">Government Certification:</td>
-                        <td class="py-3 px-4 font-extrabold text-[#0D5C3A]">{{ p.specifications.certification }}</td>
+                        <td class="py-3 px-3 sm:px-4 font-semibold text-[#0D5C3A] bg-emerald-100/50 break-words">Certification</td>
+                        <td class="py-3 px-3 sm:px-4 font-semibold text-[#0D5C3A] break-words">{{ p.specifications.certification }}</td>
                       </tr>
                     }
                   </tbody>
@@ -540,33 +482,15 @@ import { Product } from '../../models/marketplace.model';
               </div>
             }
 
-            <!-- TAB 4: Shipping & Return Policy -->
+            <!-- TAB 4: Delivery -->
             @if (activeTab() === 'shipping') {
-              <div class="space-y-4 text-xs sm:text-sm text-[#1D2939] leading-relaxed">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                    <div class="font-bold text-[#11233B] flex items-center gap-1.5">
-                      <mat-icon class="!w-4 !h-4 !text-[18px] text-[#0D5C3A]">local_shipping</mat-icon>
-                      <span>Speed Post Logistics Policy</span>
-                    </div>
-                    <p class="text-xs text-[#667085]">
-                      Dispatches within 24-48 hours directly from the artisan cooperative hub. Every package is packed with eco-friendly protective materials and carried securely by India Post Speed Post.
-                    </p>
-                  </div>
-                  <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                    <div class="font-bold text-[#11233B] flex items-center gap-1.5">
-                      <mat-icon class="!w-4 !h-4 !text-[18px] text-[#0D5C3A]">autorenew</mat-icon>
-                      <span>7-Day Return & Replacement</span>
-                    </div>
-                    <p class="text-xs text-[#667085]">
-                      In case of any transit damages or craftsmanship variance, citizens can raise a replacement ticket under CPGRAMS within 7 days. Speed post pickup is arranged from your doorstep.
-                    </p>
-                  </div>
-                </div>
+              <div class="flex items-start gap-3 p-4 sm:p-5 bg-[#F7F8F5] rounded-xl border border-slate-200 text-xs sm:text-sm text-[#475467] leading-relaxed">
+                <mat-icon class="!w-5 !h-5 !text-[20px] text-[#0D5C3A] shrink-0">local_shipping</mat-icon>
+                <p>Delivery availability and any applicable return terms are confirmed during checkout.</p>
               </div>
             }
 
-            <!-- TAB 5: Citizen Reviews -->
+            <!-- TAB 5: Reviews -->
             @if (activeTab() === 'reviews') {
               <div class="space-y-6">
                 
@@ -577,26 +501,12 @@ import { Product } from '../../models/marketplace.model';
                       <div class="text-4xl font-black text-[#11233B]">{{ p.rating }}</div>
                       <div class="flex items-center text-amber-500 justify-center mt-1">
                         @for (s of [1,2,3,4,5]; track s) {
-                          <mat-icon class="!w-3.5 !h-3.5 !text-[16px]">star</mat-icon>
+                          <mat-icon class="!w-3.5 !h-3.5 !text-[16px]">
+                            {{ p.rating >= s ? 'star' : (p.rating >= s - 0.5 ? 'star_half' : 'star_outline') }}
+                          </mat-icon>
                         }
                       </div>
-                      <div class="text-[11px] text-[#667085] mt-0.5">{{ p.reviewCount }} Ratings</div>
-                    </div>
-                    <div class="space-y-1 text-xs">
-                      <div class="flex items-center gap-2">
-                        <span>5 ★</span>
-                        <div class="w-32 bg-slate-200 h-2 rounded-full overflow-hidden">
-                          <div class="bg-[#0D5C3A] h-full w-[90%]"></div>
-                        </div>
-                        <span class="text-[11px] text-[#667085]">90%</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <span>4 ★</span>
-                        <div class="w-32 bg-slate-200 h-2 rounded-full overflow-hidden">
-                          <div class="bg-[#0D5C3A] h-full w-[10%]"></div>
-                        </div>
-                        <span class="text-[11px] text-[#667085]">10%</span>
-                      </div>
+                      <div class="text-[11px] text-[#667085] mt-0.5">{{ p.reviewCount }} reviews</div>
                     </div>
                   </div>
 
@@ -604,18 +514,18 @@ import { Product } from '../../models/marketplace.model';
                     type="button"
                     (click)="isWritingReview.set(!isWritingReview())"
                     class="px-4 py-2.5 bg-[#0D5C3A] text-white text-xs font-bold rounded-xl hover:bg-[#09432A] transition-colors self-start sm:self-auto cursor-pointer">
-                    {{ isWritingReview() ? 'Close Form' : 'Write a Review' }}
+                    {{ isWritingReview() ? 'Close' : 'Write a review' }}
                   </button>
                 </div>
 
                 <!-- Review Form -->
                 @if (isWritingReview()) {
                   <div class="p-5 bg-white rounded-xl border border-slate-300 space-y-3 text-xs">
-                    <div class="font-bold text-sm text-[#11233B]">Write a Review for Verified Purchase</div>
+                    <div class="font-semibold text-sm text-[#11233B]">Share your review</div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label for="review-author-name" class="block font-semibold mb-1">Your Name</label>
-                        <input id="review-author-name" type="text" placeholder="Citizen Name" class="w-full px-3 py-2 bg-slate-50 border rounded-lg"/>
+                        <input id="review-author-name" type="text" placeholder="Your name" class="w-full px-3 py-2 bg-slate-50 border rounded-lg"/>
                       </div>
                       <div>
                         <label for="review-author-location" class="block font-semibold mb-1">City & State</label>
@@ -627,7 +537,7 @@ import { Product } from '../../models/marketplace.model';
                       <textarea id="review-content-text" rows="3" placeholder="Share your experience with the craftsmanship..." class="w-full px-3 py-2 bg-slate-50 border rounded-lg"></textarea>
                     </div>
                     <button type="button" (click)="submitReview()" class="px-4 py-2 bg-[#0D5C3A] text-white font-bold rounded-lg cursor-pointer">
-                      Submit Citizen Review
+                      Submit review
                     </button>
                   </div>
                 }
@@ -635,23 +545,24 @@ import { Product } from '../../models/marketplace.model';
                 <!-- Review List -->
                 @if (p.reviews.length === 0) {
                   <div class="py-8 text-center text-xs text-[#667085]">
-                    No reviews yet. Be the first citizen to order and review this authentic creation!
+                    No reviews yet.
                   </div>
                 } @else {
                   <div class="space-y-3">
                     @for (rev of p.reviews; track rev.id) {
                       <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5 text-xs">
                         <div class="flex items-center justify-between">
-                          <span class="font-bold text-[#11233B] text-sm">{{ rev.userName }} ({{ rev.city }}, {{ rev.state }})</span>
+                          <span class="font-semibold text-[#11233B] text-sm">{{ rev.userName }} ({{ rev.city }}, {{ rev.state }})</span>
                           <span class="text-[11px] text-[#667085]">{{ rev.date }}</span>
                         </div>
                         <div class="flex items-center gap-2">
                           <div class="flex items-center text-amber-500">
                             @for (s of [1,2,3,4,5]; track s) {
-                              <mat-icon class="!w-3.5 !h-3.5 !text-[14px]">star</mat-icon>
+                              <mat-icon class="!w-3.5 !h-3.5 !text-[14px]">
+                                {{ rev.rating >= s ? 'star' : (rev.rating >= s - 0.5 ? 'star_half' : 'star_outline') }}
+                              </mat-icon>
                             }
                           </div>
-                          <span class="text-[10px] text-emerald-800 bg-emerald-100 font-bold px-2 py-0.5 rounded">Verified Citizen Purchase</span>
                         </div>
                         <p class="text-[#1D2939] leading-relaxed pt-1 text-xs sm:text-sm">
                           "{{ rev.comment }}"
@@ -667,19 +578,18 @@ import { Product } from '../../models/marketplace.model';
           </div>
 
           <!-- Related / More Artisan Products from this Category Section -->
-          <div class="space-y-6 pt-4">
+          <div class="space-y-5 pt-2">
             <div class="flex items-end justify-between">
               <div>
-                <div class="text-xs font-bold text-[#0D5C3A] uppercase tracking-wider">Heritage Recommendations</div>
-                <h2 class="text-xl sm:text-2xl font-black text-[#11233B] mt-0.5 font-serif">
-                  More Authentic Crafts You May Like
+                <h2 class="text-xl sm:text-2xl font-semibold text-[#11233B]">
+                  You may also like
                 </h2>
               </div>
               <button
                 type="button"
                 (click)="market.setView('catalogue')"
                 class="text-xs font-bold text-[#0D5C3A] hover:underline flex items-center gap-1 cursor-pointer">
-                <span>View Full Catalog</span>
+                <span>View all</span>
                 <mat-icon class="!w-4 !h-4 !text-[16px]">arrow_forward</mat-icon>
               </button>
             </div>
@@ -751,9 +661,9 @@ export class ProductDetailPage {
   checkPincode() {
     const pin = this.pincodeInput().trim();
     if (pin.length === 6 && /^\d+$/.test(pin)) {
-      this.pincodeStatus.set(`Deliverable to PIN ${pin} by India Post Speed Post in 3-5 business days`);
+      this.pincodeStatus.set(`Delivery availability for ${pin} is confirmed at checkout.`);
     } else {
-      this.pincodeStatus.set('Please enter a valid 6-digit postal PIN code.');
+      this.pincodeStatus.set('Enter a valid 6-digit PIN code.');
     }
   }
 
@@ -784,7 +694,7 @@ export class ProductDetailPage {
   }
 
   submitReview() {
-    this.market.showToast('Thank you! Your citizen review has been submitted for verification.', 'success');
+    this.market.showToast('Thank you for your feedback.', 'success');
     this.isWritingReview.set(false);
   }
 

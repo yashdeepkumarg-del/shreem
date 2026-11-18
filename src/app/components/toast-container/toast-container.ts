@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
   template: `
     <!-- Floating Toast Alerts (Top Right on desktop, Top Center on mobile) -->
     <div 
-      class="fixed top-16 right-4 sm:right-6 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
+      class="fixed top-16 right-4 sm:right-6 z-50 flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-2 pointer-events-none"
       aria-live="polite">
       @for (toast of market.toasts(); track toast.id) {
         <div 

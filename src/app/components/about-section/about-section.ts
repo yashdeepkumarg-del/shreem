@@ -19,11 +19,11 @@ import { HERO_IMAGE } from '../../data/mock-data';
           </div>
 
           <h1 class="text-3xl sm:text-4xl font-black text-[#15365B] leading-tight">
-            About Bharat Shilp: Dignity, Heritage, and Direct Livelihoods
+            About Shreem: Dignity, Heritage, and Direct Livelihoods
           </h1>
 
           <p class="text-sm text-[#1D2939] leading-relaxed">
-            Bharat Shilp was conceived as an authentic digital home for India's 7 million traditional artisans and rural entrepreneurs. While commercial marketplaces charge up to 40% in seller fees and promote mass-produced factory imitation goods, Bharat Shilp is a government-backed public utility ensuring zero platform cuts and absolute authenticity.
+            Shreem was conceived as an authentic digital home for India's 7 million traditional artisans and rural entrepreneurs. While commercial marketplaces charge up to 40% in seller fees and promote mass-produced factory imitation goods, Shreem is a government-backed public utility ensuring zero platform cuts and absolute authenticity.
           </p>
 
           <div class="pt-2 flex flex-wrap gap-4 text-xs font-bold text-[#15365B]">

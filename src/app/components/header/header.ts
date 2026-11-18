@@ -1,315 +1,683 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  OnDestroy,
+  inject,
+  signal
+} from '@angular/core';
 import { MarketplaceService } from '../../services/marketplace.service';
 import { MatIconModule } from '@angular/material/icon';
+
+interface MegaMenuLink {
+  label: string;
+  action: () => void;
+}
+
+interface MegaMenuColumn {
+  id: string;
+  icon: string;
+  title: string;
+  vignetteImage: string;
+  links: MegaMenuLink[];
+}
 
 @Component({
   selector: 'app-header',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatIconModule],
   template: `
-    <header class="bg-white sticky top-0 z-40 shadow-xs border-b border-[#E5E7EB]">
-      
-      <!-- Main Upper Header -->
-      <div class="max-w-[1440px] mx-auto px-4 sm:px-8 py-3.5">
-        <div class="flex items-center justify-between gap-4 md:gap-8">
+    <header class="sticky top-0 z-40 border-b border-white/60 bg-white/75 shadow-[0_8px_30px_-15px_rgba(20,25,70,0.08)] backdrop-blur-xl">
+      <div class="relative">
+        
+        <!-- Header Top Bar -->
+        <div class="mx-auto flex h-[76px] w-full max-w-[1720px] items-center justify-between px-3 sm:h-[90px] sm:px-6 lg:px-8">
           
-          <!-- Logo: BharatHaat with Lotus Emblem -->
-          <div class="flex items-center shrink-0">
+          <!-- 1. Left Logo Container (balanced width to center the nav) -->
+          <div class="flex shrink-0 items-center lg:w-[210px]">
             <button 
               type="button"
-              (click)="market.setView('home')"
-              class="flex items-center gap-2.5 text-left group cursor-pointer focus-visible:outline-[#0D5C3A]">
+              (click)="market.setView('home'); closeMegaMenu()"
+              class="flex items-center gap-2.5 text-left group cursor-pointer focus-visible:outline-[#0D5C3A]"
+              aria-label="Shreem Homepage">
               
-              <!-- Clean Stylized Lotus Logo Emblem -->
-              <div class="w-10 h-10 flex items-center justify-center shrink-0">
-                <svg class="w-10 h-10" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <!-- Lotus petals -->
-                  <path d="M50 15C50 15 58 35 58 55C58 66 54 75 50 80C46 75 42 66 42 55C42 35 50 15 50 15Z" fill="#E67E22"/>
-                  <path d="M50 25C50 25 68 40 70 60C71 70 65 77 58 80C60 70 58 55 50 45C50 45 50 35 50 25Z" fill="#D35400"/>
-                  <path d="M50 25C50 25 32 40 30 60C29 70 35 77 42 80C40 70 42 55 50 45C50 45 50 35 50 25Z" fill="#F39C12"/>
-                  <path d="M58 80C70 78 85 70 88 55C89 45 80 40 70 42C68 55 64 68 58 80Z" fill="#27AE60"/>
-                  <path d="M42 80C30 78 15 70 12 55C11 45 20 40 30 42C32 55 36 68 42 80Z" fill="#2ECC71"/>
-                  <path d="M30 80C40 85 60 85 70 80C65 86 55 88 50 88C45 88 35 86 30 80Z" fill="#1E8449"/>
-                </svg>
-              </div>
-
-              <div class="flex flex-col">
-                <span class="text-2xl sm:text-2xl font-black tracking-tight text-[#0D3B34] font-serif leading-none">
-                  BharatHaat
-                </span>
-                <span class="text-[11px] text-[#0D5C3A] font-semibold tracking-wide mt-0.5">
-                  Local Hands. Stronger India.
-                </span>
-              </div>
+              <img
+                src="/assets/hero/shreem-logo.png"
+                alt="Shreem logo"
+                class="h-[68px] w-[68px] shrink-0 rounded-full object-contain transition-transform group-hover:scale-105 sm:h-20 sm:w-20"
+              />
             </button>
           </div>
 
-          <!-- Center: Search Bar with Category Dropdown & Green Search Button -->
-          <div class="flex-1 max-w-2xl relative hidden md:block">
-            <div class="flex items-center border border-[#D1D5DB] rounded-lg overflow-hidden bg-white focus-within:border-[#0D5C3A] focus-within:ring-1 focus-within:ring-[#0D5C3A] transition-all">
+          <!-- 2. Centered Frosted Glass Navigation Pill (Visible on lg: 1024px and up) -->
+          <nav
+            aria-label="Main navigation"
+            class="relative z-50 hidden flex-1 justify-center lg:flex"
+            (mouseleave)="onNavLeave()">
+            <div class="inline-flex h-[48px] max-w-full items-center gap-0.5 rounded-full border border-white/85 bg-white/70 p-1 shadow-[0_8px_32px_rgba(15,35,30,0.08),inset_0_1px_1.5px_rgba(255,255,255,0.95)] backdrop-blur-2xl backdrop-saturate-150 xl:gap-1">
               
-              <!-- Search Icon & Text Input -->
-              <div class="pl-3.5 text-[#667085] flex items-center pointer-events-none">
-                <mat-icon class="!w-5 !h-5 !text-[20px]">search</mat-icon>
+              <!-- 1. Home -->
+              <button
+                type="button"
+                (click)="market.setView('home'); closeMegaMenu()"
+                [class.bg-white]="market.currentView() === 'home' && !isMegaMenuOpen()"
+                [class.text-[#0d5c3a]]="market.currentView() === 'home' && !isMegaMenuOpen()"
+                [class.shadow-xs]="market.currentView() === 'home' && !isMegaMenuOpen()"
+                [class.text-[#1b3858]]="market.currentView() !== 'home' || isMegaMenuOpen()"
+                class="flex h-9 shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2.5 text-[11px] font-extrabold uppercase tracking-wide transition hover:bg-white/80 xl:px-3 xl:text-xs cursor-pointer"
+                [attr.aria-current]="market.currentView() === 'home' ? 'page' : null">
+                <mat-icon class="!h-3.5 !w-3.5 !text-[14px]">home</mat-icon>
+                <span>Home</span>
+              </button>
+
+              <!-- 2. Categories Dropdown Trigger -->
+              <button
+                type="button"
+                (mouseenter)="onNavHover('category')"
+                (click)="onNavClick('category')"
+                [class.bg-white]="isMegaMenuOpen() && activeColumn() === 'category'"
+                [class.text-[#0d5c3a]]="isMegaMenuOpen() && activeColumn() === 'category'"
+                [class.shadow-xs]="isMegaMenuOpen() && activeColumn() === 'category'"
+                [class.text-[#1b3858]]="!isMegaMenuOpen() || activeColumn() !== 'category'"
+                class="flex h-9 shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 text-[11px] font-extrabold uppercase tracking-wide transition hover:bg-white/80 xl:px-2.5 xl:text-xs cursor-pointer">
+                <span>Categories</span>
+                <mat-icon class="!h-3 !w-3 !text-[13px] text-[#556982] transition-transform duration-200" [class.rotate-180]="isMegaMenuOpen() && activeColumn() === 'category'">keyboard_arrow_down</mat-icon>
+              </button>
+
+              <!-- 3. Collections Dropdown Trigger -->
+              <button
+                type="button"
+                (mouseenter)="onNavHover('collections')"
+                (click)="onNavClick('collections')"
+                [class.bg-white]="isMegaMenuOpen() && activeColumn() === 'collections'"
+                [class.text-[#0d5c3a]]="isMegaMenuOpen() && activeColumn() === 'collections'"
+                [class.shadow-xs]="isMegaMenuOpen() && activeColumn() === 'collections'"
+                [class.text-[#1b3858]]="!isMegaMenuOpen() || activeColumn() !== 'collections'"
+                class="flex h-9 shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 text-[11px] font-extrabold uppercase tracking-wide transition hover:bg-white/80 xl:px-2.5 xl:text-xs cursor-pointer">
+                <span>Collections</span>
+                <mat-icon class="!h-3 !w-3 !text-[13px] text-[#556982] transition-transform duration-200" [class.rotate-180]="isMegaMenuOpen() && activeColumn() === 'collections'">keyboard_arrow_down</mat-icon>
+              </button>
+
+              <!-- 4. Artisans Dropdown Trigger -->
+              <button
+                type="button"
+                (mouseenter)="onNavHover('artisans')"
+                (click)="onNavClick('artisans')"
+                [class.bg-white]="isMegaMenuOpen() && activeColumn() === 'artisans'"
+                [class.text-[#0d5c3a]]="isMegaMenuOpen() && activeColumn() === 'artisans'"
+                [class.shadow-xs]="isMegaMenuOpen() && activeColumn() === 'artisans'"
+                [class.text-[#1b3858]]="!isMegaMenuOpen() || activeColumn() !== 'artisans'"
+                class="flex h-9 shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 text-[11px] font-extrabold uppercase tracking-wide transition hover:bg-white/80 xl:px-2.5 xl:text-xs cursor-pointer">
+                <span>Artisans &amp; Brands</span>
+                <mat-icon class="!h-3 !w-3 !text-[13px] text-[#556982] transition-transform duration-200" [class.rotate-180]="isMegaMenuOpen() && activeColumn() === 'artisans'">keyboard_arrow_down</mat-icon>
+              </button>
+
+              <!-- 5. Interactive Craft Atlas -->
+              <button
+                type="button"
+                (click)="market.setView('craft-map'); closeMegaMenu()"
+                [class.bg-white]="market.currentView() === 'craft-map' && !isMegaMenuOpen()"
+                [class.text-[#0d5c3a]]="market.currentView() === 'craft-map' && !isMegaMenuOpen()"
+                [class.shadow-xs]="market.currentView() === 'craft-map' && !isMegaMenuOpen()"
+                [class.text-[#1b3858]]="market.currentView() !== 'craft-map' || isMegaMenuOpen()"
+                class="flex h-9 shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 text-[11px] font-extrabold uppercase tracking-wide transition hover:bg-white/80 xl:px-2.5 xl:text-xs cursor-pointer">
+                <span>Craft Atlas</span>
+              </button>
+
+              <!-- 6. About Us -->
+              <button
+                type="button"
+                (click)="market.setView('about'); closeMegaMenu()"
+                [class.bg-white]="market.currentView() === 'about' && !isMegaMenuOpen()"
+                [class.text-[#0d5c3a]]="market.currentView() === 'about' && !isMegaMenuOpen()"
+                [class.shadow-xs]="market.currentView() === 'about' && !isMegaMenuOpen()"
+                [class.text-[#1b3858]]="market.currentView() !== 'about' || isMegaMenuOpen()"
+                class="flex h-9 shrink-0 items-center whitespace-nowrap rounded-full px-2 text-[11px] font-extrabold uppercase tracking-wide transition hover:bg-white/80 xl:px-2.5 xl:text-xs cursor-pointer">
+                <span>About Us</span>
+              </button>
+
+              <!-- 7. Help & Support Dropdown Trigger -->
+              <button
+                type="button"
+                (mouseenter)="onNavHover('support')"
+                (click)="onNavClick('support')"
+                [class.bg-white]="isMegaMenuOpen() && activeColumn() === 'support'"
+                [class.text-[#0d5c3a]]="isMegaMenuOpen() && activeColumn() === 'support'"
+                [class.shadow-xs]="isMegaMenuOpen() && activeColumn() === 'support'"
+                [class.text-[#1b3858]]="!isMegaMenuOpen() || activeColumn() !== 'support'"
+                class="flex h-9 shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 text-[11px] font-extrabold uppercase tracking-wide transition hover:bg-white/80 xl:px-2.5 xl:text-xs cursor-pointer">
+                <span>Help &amp; Support</span>
+                <mat-icon class="!h-3 !w-3 !text-[13px] text-[#556982] transition-transform duration-200" [class.rotate-180]="isMegaMenuOpen() && activeColumn() === 'support'">keyboard_arrow_down</mat-icon>
+              </button>
+
+              <!-- 8. Explore All Mega Menu Button (Snug, polished emerald pill, zero overflow) -->
+              <button
+                type="button"
+                (mouseenter)="onNavHover('all')"
+                (click)="onNavClick('all')"
+                class="flex h-9 shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-gradient-to-r from-[#0D5C3A] to-[#084229] px-3 text-[11px] font-black uppercase tracking-wide text-white shadow-[0_3px_10px_rgba(13,92,58,0.3)] transition hover:brightness-110 active:scale-95 cursor-pointer xl:px-3.5 xl:text-xs">
+                <mat-icon class="!h-3.5 !w-3.5 !text-[15px]">widgets</mat-icon>
+                <span>Explore All</span>
+                <mat-icon class="!h-3 !w-3 !text-[13px] transition-transform duration-200" [class.rotate-180]="isMegaMenuOpen()">keyboard_arrow_down</mat-icon>
+              </button>
+
+            </div>
+          </nav>
+
+          <!-- 3. Right Action Controls (balanced width) -->
+          <div class="flex shrink-0 items-center justify-end gap-1 min-[360px]:gap-1.5 sm:gap-2 lg:w-[210px]">
+            <!-- Search -->
+            <button
+              type="button"
+              (click)="isSearchOpen.update(open => !open); showSuggestions.set(false); closeMegaMenu()"
+              class="flex h-8 w-8 items-center justify-center rounded-full bg-[#19134f] text-white shadow-sm transition hover:bg-[#29216f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2776c8] min-[360px]:h-9 min-[360px]:w-9 sm:h-11 sm:w-11 cursor-pointer"
+              aria-label="Search products"
+              [attr.aria-expanded]="isSearchOpen()">
+              <mat-icon class="!h-4 !w-4 !text-[17px] sm:!h-5 sm:!w-5 sm:!text-[20px]">search</mat-icon>
+            </button>
+            
+            <!-- Citizen Account -->
+            <button
+              type="button"
+              (click)="market.openAccount('orders'); closeMegaMenu()"
+              class="hidden h-9 w-9 items-center justify-center rounded-full bg-[#19134f] text-white shadow-sm transition hover:bg-[#29216f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2776c8] sm:h-11 sm:w-11 sm:flex cursor-pointer"
+              aria-label="My account"
+              title="My Account">
+              <mat-icon class="!h-4 !w-4 !text-[17px] sm:!h-5 sm:!w-5 sm:!text-[20px]">person_outline</mat-icon>
+            </button>
+            
+            <!-- Wishlist -->
+            <button
+              type="button"
+              (click)="market.setView('wishlist'); closeMegaMenu()"
+              class="relative flex h-8 w-8 items-center justify-center rounded-full bg-[#19134f] text-white shadow-sm transition hover:bg-[#29216f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2776c8] min-[360px]:h-9 min-[360px]:w-9 sm:h-11 sm:w-11 cursor-pointer"
+              aria-label="Wishlist"
+              title="Wishlist">
+              <mat-icon class="!h-4 !w-4 !text-[17px] sm:!h-5 sm:!w-5 sm:!text-[20px]">favorite_border</mat-icon>
+              @if (market.wishlistIds().length > 0) {
+                <span class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ee8b22] px-1 text-[9px] font-bold text-white">{{ market.wishlistIds().length }}</span>
+              }
+            </button>
+            
+            <!-- Cart Drawer Trigger -->
+            <button
+              type="button"
+              (click)="market.toggleCartDrawer(true); closeMegaMenu()"
+              class="relative flex h-8 w-8 items-center justify-center rounded-full bg-[#19134f] text-white shadow-sm transition hover:bg-[#29216f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2776c8] min-[360px]:h-9 min-[360px]:w-9 sm:h-11 sm:w-11 cursor-pointer"
+              aria-label="Shopping cart"
+              title="Shopping Cart">
+              <mat-icon class="!h-4 !w-4 !text-[17px] sm:!h-5 sm:!w-5 sm:!text-[20px]">shopping_cart</mat-icon>
+              @if (market.cartCount() > 0) {
+                <span class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ee8b22] px-1 text-[9px] font-bold text-white">{{ market.cartCount() }}</span>
+              }
+            </button>
+            
+            <!-- Menu Toggle Button (Visible on screens < lg) -->
+            <button
+              type="button"
+              (click)="isMobileMenuOpen.update(open => !open); closeMegaMenu()"
+              class="flex h-8 w-8 items-center justify-center rounded-full border border-[#e4e9f2] text-[#19134f] transition hover:bg-[#f1f5fb] min-[360px]:h-9 min-[360px]:w-9 lg:hidden cursor-pointer"
+              aria-label="Toggle navigation menu"
+              [attr.aria-expanded]="isMobileMenuOpen()">
+              <mat-icon class="!h-5 !w-5 !text-[20px]">{{ isMobileMenuOpen() ? 'close' : 'menu' }}</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- MEGA MENU DROPDOWN PANEL (5 COLUMNS + 1 PROMO CARD)      -->
+        <!-- ======================================================== -->
+        @if (isMegaMenuOpen()) {
+          <!-- Full-screen backdrop overlay for focus -->
+          <div 
+            class="fixed inset-0 z-40 bg-black/35 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+            (click)="closeMegaMenu()">
+          </div>
+
+          <!-- Dropdown Container Card -->
+          <div 
+            class="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50 w-[96vw] max-w-[1360px] overflow-hidden rounded-[28px] border border-[#e2e8f0] bg-white shadow-[0_24px_50px_-12px_rgba(15,23,42,0.25)] animate-in fade-in slide-in-from-top-3 duration-200"
+            (mouseenter)="cancelCloseTimer()"
+            (mouseleave)="onNavLeave()"
+            (click)="$event.stopPropagation()">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 xl:divide-x divide-[#edf2f7]">
+              
+              <!-- COLUMN 1: Shop by Category -->
+              <div 
+                class="flex flex-col justify-between p-5 lg:p-6 transition-all"
+                [class.bg-[#f4f9f6]]="activeColumn() === 'category'">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#e8f3ee] text-[#0d5c3a] shadow-2xs">
+                      <mat-icon class="!h-5 !w-5 !text-[20px]">grid_view</mat-icon>
+                    </div>
+                  </div>
+                  <h3 class="mt-3 text-[17px] font-black tracking-tight text-[#0f3028]">
+                    Shop by Category
+                  </h3>
+                  <div class="mt-1.5 mb-3.5 h-[3px] w-10 rounded-full bg-[#e09825]"></div>
+
+                  <ul class="space-y-1.5">
+                    @for (link of categoryColumn.links; track link.label) {
+                      <li>
+                        <button
+                          type="button"
+                          (click)="link.action(); closeMegaMenu()"
+                          class="group flex w-full items-center gap-1.5 text-left text-[13px] font-semibold text-[#344054] transition hover:translate-x-0.5 hover:text-[#0d5c3a] cursor-pointer py-0.5">
+                          <mat-icon class="!h-3.5 !w-3.5 !text-[15px] text-slate-400 group-hover:text-[#0d5c3a] transition-colors shrink-0">chevron_right</mat-icon>
+                          <span>{{ link.label }}</span>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+
+                <!-- Bottom Vignette -->
+                <div class="mt-4 pt-2 border-t border-slate-100/80">
+                  <img
+                    [src]="categoryColumn.vignetteImage"
+                    alt="Artisan painting a decorated pottery vase"
+                    class="h-[105px] w-full object-contain object-bottom mix-blend-multiply opacity-90 transition-transform duration-300 hover:scale-105"
+                  />
+                </div>
               </div>
 
+              <!-- COLUMN 2: Collections -->
+              <div 
+                class="flex flex-col justify-between p-5 lg:p-6 transition-all"
+                [class.bg-[#f4f9f6]]="activeColumn() === 'collections'">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#e8f3ee] text-[#0d5c3a] shadow-2xs">
+                      <mat-icon class="!h-5 !w-5 !text-[20px]">local_offer</mat-icon>
+                    </div>
+                  </div>
+                  <h3 class="mt-3 text-[17px] font-black tracking-tight text-[#0f3028]">
+                    Collections
+                  </h3>
+                  <div class="mt-1.5 mb-3.5 h-[3px] w-10 rounded-full bg-[#e09825]"></div>
+
+                  <ul class="space-y-1.5">
+                    @for (link of collectionsColumn.links; track link.label) {
+                      <li>
+                        <button
+                          type="button"
+                          (click)="link.action(); closeMegaMenu()"
+                          class="group flex w-full items-center gap-1.5 text-left text-[13px] font-semibold text-[#344054] transition hover:translate-x-0.5 hover:text-[#0d5c3a] cursor-pointer py-0.5">
+                          <mat-icon class="!h-3.5 !w-3.5 !text-[15px] text-slate-400 group-hover:text-[#0d5c3a] transition-colors shrink-0">chevron_right</mat-icon>
+                          <span>{{ link.label }}</span>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+
+                <!-- Bottom Vignette -->
+                <div class="mt-4 pt-2 border-t border-slate-100/80">
+                  <img
+                    [src]="collectionsColumn.vignetteImage"
+                    alt="Artisan weaving colorful fabric on a handloom"
+                    class="h-[105px] w-full object-contain object-bottom mix-blend-multiply opacity-90 transition-transform duration-300 hover:scale-105"
+                  />
+                </div>
+              </div>
+
+              <!-- COLUMN 3: Artisan & Brands -->
+              <div 
+                class="flex flex-col justify-between p-5 lg:p-6 transition-all"
+                [class.bg-[#f4f9f6]]="activeColumn() === 'artisans'">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#e8f3ee] text-[#0d5c3a] shadow-2xs">
+                      <mat-icon class="!h-5 !w-5 !text-[20px]">workspace_premium</mat-icon>
+                    </div>
+                  </div>
+                  <h3 class="mt-3 text-[17px] font-black tracking-tight text-[#0f3028]">
+                    Artisan & Brands
+                  </h3>
+                  <div class="mt-1.5 mb-3.5 h-[3px] w-10 rounded-full bg-[#e09825]"></div>
+
+                  <ul class="space-y-1.5">
+                    @for (link of artisansColumn.links; track link.label) {
+                      <li>
+                        <button
+                          type="button"
+                          (click)="link.action(); closeMegaMenu()"
+                          class="group flex w-full items-center gap-1.5 text-left text-[13px] font-semibold text-[#344054] transition hover:translate-x-0.5 hover:text-[#0d5c3a] cursor-pointer py-0.5">
+                          <mat-icon class="!h-3.5 !w-3.5 !text-[15px] text-slate-400 group-hover:text-[#0d5c3a] transition-colors shrink-0">chevron_right</mat-icon>
+                          <span>{{ link.label }}</span>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+
+                <!-- Bottom Vignette -->
+                <div class="mt-4 pt-2 border-t border-slate-100/80">
+                  <img
+                    [src]="artisansColumn.vignetteImage"
+                    alt="Artisan making gold jewelry by hand"
+                    class="h-[105px] w-full object-contain object-bottom mix-blend-multiply opacity-90 transition-transform duration-300 hover:scale-105"
+                  />
+                </div>
+              </div>
+
+              <!-- COLUMN 4: Help & Support -->
+              <div 
+                class="flex flex-col justify-between p-5 lg:p-6 transition-all"
+                [class.bg-[#f4f9f6]]="activeColumn() === 'support'">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#e8f3ee] text-[#0d5c3a] shadow-2xs">
+                      <mat-icon class="!h-5 !w-5 !text-[20px]">headset_mic</mat-icon>
+                    </div>
+                  </div>
+                  <h3 class="mt-3 text-[17px] font-black tracking-tight text-[#0f3028]">
+                    Help & Support
+                  </h3>
+                  <div class="mt-1.5 mb-3.5 h-[3px] w-10 rounded-full bg-[#e09825]"></div>
+
+                  <ul class="space-y-1.5">
+                    @for (link of supportColumn.links; track link.label) {
+                      <li>
+                        <button
+                          type="button"
+                          (click)="link.action(); closeMegaMenu()"
+                          class="group flex w-full items-center gap-1.5 text-left text-[13px] font-semibold text-[#344054] transition hover:translate-x-0.5 hover:text-[#0d5c3a] cursor-pointer py-0.5">
+                          <mat-icon class="!h-3.5 !w-3.5 !text-[15px] text-slate-400 group-hover:text-[#0d5c3a] transition-colors shrink-0">chevron_right</mat-icon>
+                          <span>{{ link.label }}</span>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+
+                <!-- Bottom Vignette -->
+                <div class="mt-4 pt-2 border-t border-slate-100/80">
+                  <img
+                    [src]="supportColumn.vignetteImage"
+                    alt="Artisan arranging a handcrafted gift hamper"
+                    class="h-[105px] w-full object-contain object-bottom mix-blend-multiply opacity-90 transition-transform duration-300 hover:scale-105"
+                  />
+                </div>
+              </div>
+
+              <!-- COLUMN 5: My Account -->
+              <div 
+                class="flex flex-col justify-between p-5 lg:p-6 transition-all"
+                [class.bg-[#f4f9f6]]="activeColumn() === 'account'">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#e8f3ee] text-[#0d5c3a] shadow-2xs">
+                      <mat-icon class="!h-5 !w-5 !text-[20px]">person_outline</mat-icon>
+                    </div>
+                  </div>
+                  <h3 class="mt-3 text-[17px] font-black tracking-tight text-[#0f3028]">
+                    My Account
+                  </h3>
+                  <div class="mt-1.5 mb-3.5 h-[3px] w-10 rounded-full bg-[#e09825]"></div>
+
+                  <ul class="space-y-1.5">
+                    @for (link of accountColumn.links; track link.label) {
+                      <li>
+                        <button
+                          type="button"
+                          (click)="link.action(); closeMegaMenu()"
+                          class="group flex w-full items-center gap-1.5 text-left text-[13px] font-semibold text-[#344054] transition hover:translate-x-0.5 hover:text-[#0d5c3a] cursor-pointer py-0.5">
+                          <mat-icon class="!h-3.5 !w-3.5 !text-[15px] text-slate-400 group-hover:text-[#0d5c3a] transition-colors shrink-0">chevron_right</mat-icon>
+                          <span>{{ link.label }}</span>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+
+                <!-- Bottom Vignette -->
+                <div class="mt-4 pt-2 border-t border-slate-100/80">
+                  <img
+                    [src]="accountColumn.vignetteImage"
+                    alt="Artisan weaving a natural fiber basket"
+                    class="h-[105px] w-full object-contain object-bottom mix-blend-multiply opacity-90 transition-transform duration-300 hover:scale-105"
+                  />
+                </div>
+              </div>
+
+              <!-- COLUMN 6: Featured Promo Banner Card -->
+              <div class="p-4 sm:p-5 flex flex-col justify-center bg-[#fafbfc]">
+                <div class="group relative overflow-hidden rounded-2xl border border-[#d2e4db] bg-gradient-to-br from-[#f2f7f4] via-[#e8f1ec] to-[#d6e7de] p-5 shadow-sm transition hover:shadow-md h-full flex flex-col justify-between min-h-[340px]">
+                  
+                  <!-- Banner Photo with Multiply Blend -->
+                  <img
+                    src="/assets/mega-menu/promo_artisan_banner.jpg"
+                    alt="Indian artisan weaving"
+                    class="absolute inset-0 h-full w-full object-cover object-center opacity-90 mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-white/95 via-white/75 to-transparent"></div>
+
+                  <!-- Badge -->
+                  <div class="relative z-10">
+                    <span class="inline-flex items-center gap-1 rounded-full border border-[#cfe2d7] bg-white/90 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-[#0d5c3a] shadow-2xs backdrop-blur-xs">
+                      <mat-icon class="!h-3 !w-3 !text-[12px]">verified</mat-icon>
+                      Direct From Artisans
+                    </span>
+                  </div>
+
+                  <!-- Text & CTA Button -->
+                  <div class="relative z-10 mt-auto pt-8">
+                    <h4 class="font-serif text-xl sm:text-2xl font-black leading-tight text-[#0c392c]">
+                      Discover<br/>India’s<br/>Handcrafted<br/>Treasures
+                    </h4>
+                    <p class="mt-1.5 text-[11px] font-semibold leading-relaxed text-[#2c4e43]">
+                      Authentic • Sustainable •<br/>100% Direct Weaver Benefit
+                    </p>
+
+                    <button
+                      type="button"
+                      (click)="market.setView('catalogue'); closeMegaMenu()"
+                      class="mt-4 inline-flex items-center gap-2 rounded-full bg-[#0d5c3a] px-5 py-2.5 text-xs font-black text-white shadow-md transition-all hover:gap-3 hover:bg-[#07462c] cursor-pointer">
+                      <span>Shop Now</span>
+                      <mat-icon class="!h-4 !w-4 !text-[16px]">arrow_forward</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        }
+
+        <!-- ======================================================== -->
+        <!-- MOBILE NAVIGATION DRAWER (Screens < xl)                  -->
+        <!-- ======================================================== -->
+        @if (isMobileMenuOpen()) {
+          <nav aria-label="Mobile navigation" class="border-t border-[#e9eaf1] bg-white px-4 py-4 shadow-xl xl:hidden max-h-[82vh] overflow-y-auto">
+            <div class="space-y-4">
+              
+              <!-- Quick Main Views -->
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  (click)="navigate('home')"
+                  [class.bg-[#0d5c3a]]="market.currentView() === 'home'"
+                  [class.text-white]="market.currentView() === 'home'"
+                  [class.text-[#173563]]="market.currentView() !== 'home'"
+                  class="flex items-center gap-2 rounded-xl p-3 text-left text-xs font-bold uppercase tracking-wide border border-slate-200">
+                  <mat-icon class="!h-4 !w-4 !text-[16px]">home</mat-icon>
+                  <span>Home</span>
+                </button>
+
+                <button
+                  type="button"
+                  (click)="navigate('catalogue')"
+                  [class.bg-[#0d5c3a]]="market.currentView() === 'catalogue'"
+                  [class.text-white]="market.currentView() === 'catalogue'"
+                  [class.text-[#173563]]="market.currentView() !== 'catalogue'"
+                  class="flex items-center gap-2 rounded-xl p-3 text-left text-xs font-bold uppercase tracking-wide border border-slate-200">
+                  <mat-icon class="!h-4 !w-4 !text-[16px]">storefront</mat-icon>
+                  <span>All Crafts</span>
+                </button>
+
+                <button
+                  type="button"
+                  (click)="navigate('craft-map')"
+                  [class.bg-[#0d5c3a]]="market.currentView() === 'craft-map'"
+                  [class.text-white]="market.currentView() === 'craft-map'"
+                  [class.text-[#173563]]="market.currentView() !== 'craft-map'"
+                  class="flex items-center gap-2 rounded-xl p-3 text-left text-xs font-bold uppercase tracking-wide border border-slate-200">
+                  <mat-icon class="!h-4 !w-4 !text-[16px]">map</mat-icon>
+                  <span>Craft Atlas</span>
+                </button>
+
+                <button
+                  type="button"
+                  (click)="navigate('sellers')"
+                  [class.bg-[#0d5c3a]]="market.currentView() === 'sellers'"
+                  [class.text-white]="market.currentView() === 'sellers'"
+                  [class.text-[#173563]]="market.currentView() !== 'sellers'"
+                  class="flex items-center gap-2 rounded-xl p-3 text-left text-xs font-bold uppercase tracking-wide border border-slate-200">
+                  <mat-icon class="!h-4 !w-4 !text-[16px]">groups</mat-icon>
+                  <span>Artisans</span>
+                </button>
+              </div>
+
+              <!-- Shop by Category Accordion Section -->
+              <div class="rounded-2xl border border-slate-200 p-3.5 bg-[#fbfcfb]">
+                <div class="flex items-center gap-2 text-xs font-black text-[#0d5c3a] uppercase tracking-wider mb-2">
+                  <mat-icon class="!h-4 !w-4 !text-[16px]">grid_view</mat-icon>
+                  <span>Shop by Category</span>
+                </div>
+                <div class="grid grid-cols-2 gap-1.5 text-xs font-semibold text-[#344054]">
+                  @for (link of categoryColumn.links; track link.label) {
+                    <button
+                      type="button"
+                      (click)="link.action(); isMobileMenuOpen.set(false)"
+                      class="text-left py-1.5 px-2 rounded-lg hover:bg-[#e8f3ee] transition-colors cursor-pointer">
+                      {{ link.label }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Collections Section -->
+              <div class="rounded-2xl border border-slate-200 p-3.5 bg-[#fbfcfb]">
+                <div class="flex items-center gap-2 text-xs font-black text-[#0d5c3a] uppercase tracking-wider mb-2">
+                  <mat-icon class="!h-4 !w-4 !text-[16px]">local_offer</mat-icon>
+                  <span>Featured Collections</span>
+                </div>
+                <div class="grid grid-cols-2 gap-1.5 text-xs font-semibold text-[#344054]">
+                  @for (link of collectionsColumn.links; track link.label) {
+                    <button
+                      type="button"
+                      (click)="link.action(); isMobileMenuOpen.set(false)"
+                      class="text-left py-1.5 px-2 rounded-lg hover:bg-[#e8f3ee] transition-colors cursor-pointer">
+                      {{ link.label }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Help & Support Mobile -->
+              <div class="rounded-2xl border border-slate-200 p-3.5 bg-[#fbfcfb]">
+                <div class="flex items-center gap-2 text-xs font-black text-[#0d5c3a] uppercase tracking-wider mb-2">
+                  <mat-icon class="!h-4 !w-4 !text-[16px]">headset_mic</mat-icon>
+                  <span>Help & Citizen Support</span>
+                </div>
+                <div class="grid grid-cols-2 gap-1.5 text-xs font-semibold text-[#344054]">
+                  @for (link of supportColumn.links; track link.label) {
+                    <button
+                      type="button"
+                      (click)="link.action(); isMobileMenuOpen.set(false)"
+                      class="text-left py-1.5 px-2 rounded-lg hover:bg-[#e8f3ee] transition-colors cursor-pointer">
+                      {{ link.label }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- My Account Section -->
+              <div class="rounded-2xl border border-slate-200 p-3.5 bg-[#fbfcfb]">
+                <div class="flex items-center gap-2 text-xs font-black text-[#0d5c3a] uppercase tracking-wider mb-2">
+                  <mat-icon class="!h-4 !w-4 !text-[16px]">person_outline</mat-icon>
+                  <span>Citizen Portal</span>
+                </div>
+                <div class="grid grid-cols-2 gap-1.5 text-xs font-semibold text-[#344054]">
+                  @for (link of accountColumn.links; track link.label) {
+                    <button
+                      type="button"
+                      (click)="link.action(); isMobileMenuOpen.set(false)"
+                      class="text-left py-1.5 px-2 rounded-lg hover:bg-[#e8f3ee] transition-colors cursor-pointer">
+                      {{ link.label }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+            </div>
+          </nav>
+        }
+
+        <!-- ======================================================== -->
+        <!-- SEARCH OVERLAY                                           -->
+        <!-- ======================================================== -->
+        @if (isSearchOpen()) {
+          <div class="absolute left-0 right-0 top-full z-50 border-t border-[#e9eaf1] bg-white px-4 py-3 shadow-xl">
+            <div class="relative mx-auto flex max-w-[760px] items-center gap-2 rounded-xl border border-[#d9dfeb] bg-white px-3 py-1.5 focus-within:border-[#315e9d] focus-within:ring-2 focus-within:ring-[#315e9d]/10">
+              <mat-icon class="!h-5 !w-5 !text-[19px] text-[#526783]">search</mat-icon>
               <input
                 type="text"
                 [value]="market.searchQuery()"
                 (input)="onSearchInput($event)"
                 (focus)="showSuggestions.set(true)"
                 (keydown.enter)="executeSearch()"
-                placeholder="Search for handmade, organic, local, or government-certified products..."
-                class="w-full pl-3 pr-2 py-2.5 text-xs sm:text-sm bg-transparent focus:outline-none text-[#1D2939] placeholder:text-[#667085]"
-              />
+                (keydown.escape)="isSearchOpen.set(false)"
+                placeholder="Search handmade, organic, and GI-tagged local products..."
+                class="w-full bg-transparent py-2 text-sm text-[#1d2939] outline-none placeholder:text-[#77849a]"
+                aria-label="Search products" />
+              <button type="button" (click)="executeSearch()" class="rounded-lg bg-[#19134f] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#29216f] cursor-pointer">Search</button>
 
-              <!-- "All Categories ▾" Dropdown Trigger -->
-              <div class="relative shrink-0 border-l border-[#E5E7EB] bg-slate-50/50">
-                <select
-                  [value]="market.filters().category"
-                  (change)="onCategoryChange($any($event.target).value)"
-                  class="px-3 py-2.5 text-xs font-semibold text-[#15365B] bg-transparent focus:outline-none cursor-pointer pr-7 appearance-none">
-                  <option value="all">All Categories</option>
-                  @for (c of market.categories(); track c.id) {
-                    <option [value]="c.slug">{{ c.name }}</option>
-                  }
-                </select>
-                <mat-icon class="!w-4 !h-4 !text-[16px] text-slate-400 absolute right-1.5 top-3 pointer-events-none">arrow_drop_down</mat-icon>
-              </div>
-
-              <!-- Green Search Button -->
-              <button
-                type="button"
-                (click)="executeSearch()"
-                class="px-4 py-2.5 bg-[#0D5C3A] hover:bg-[#09432A] text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                aria-label="Search">
-                <mat-icon class="!w-5 !h-5 !text-[20px]">search</mat-icon>
-              </button>
-            </div>
-
-            <!-- Autocomplete Suggestions Dropdown -->
-            @if (showSuggestions() && suggestions().length > 0) {
-              <div 
-                class="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E5E7EB] rounded-lg shadow-xl z-50 p-2 text-xs"
-                (mouseleave)="showSuggestions.set(false)">
-                <div class="px-3 py-1 font-semibold text-[#667085] uppercase tracking-wider text-[10px] flex items-center justify-between">
-                  <span>Trending Artisan Searches</span>
-                  <button type="button" (click)="showSuggestions.set(false)" class="text-slate-400 hover:text-slate-600">Close</button>
-                </div>
-                <div class="divide-y divide-slate-100">
-                  @for (s of suggestions(); track s) {
+              @if (showSuggestions() && suggestions().length > 0) {
+                <div class="absolute left-0 right-0 top-full z-50 mt-2 rounded-xl border border-[#e5e8ef] bg-white p-2 text-xs shadow-xl">
+                  <div class="flex items-center justify-between px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#758198]">
+                    <span>Trending artisan searches</span>
+                    <button type="button" (click)="showSuggestions.set(false)" class="text-[#526783] hover:text-[#19134f] cursor-pointer">Close</button>
+                  </div>
+                  @for (suggestion of suggestions(); track suggestion) {
                     <button
                       type="button"
-                      (click)="pickSuggestion(s)"
-                      class="w-full text-left px-3 py-2 hover:bg-slate-50 rounded flex items-center justify-between text-[#1D2939] cursor-pointer">
+                      (click)="pickSuggestion(suggestion)"
+                      class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[#263d60] hover:bg-[#f4f6fb] cursor-pointer">
                       <span class="flex items-center gap-2">
-                        <mat-icon class="!w-4 !h-4 !text-[16px] text-[#0D5C3A]">trending_up</mat-icon>
-                        <span class="font-medium">{{ s }}</span>
+                        <mat-icon class="!h-4 !w-4 !text-[16px] text-[#315e9d]">trending_up</mat-icon>
+                        {{ suggestion }}
                       </span>
-                      <span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded">Certified GI</span>
+                      <span class="rounded-full bg-[#edf4ff] px-2 py-0.5 text-[10px] font-bold text-[#315e9d]">Authentic</span>
                     </button>
                   }
                 </div>
-              </div>
-            }
-          </div>
-
-          <!-- Right: Account, Wishlist, Cart -->
-          <div class="flex items-center gap-4 sm:gap-6 shrink-0">
-            
-            <!-- Mobile Search Icon Trigger -->
-            <button
-              type="button"
-              (click)="isMobileSearchOpen.set(!isMobileSearchOpen())"
-              class="md:hidden p-2 text-[#0D3B34] hover:bg-slate-100 rounded-lg"
-              aria-label="Toggle Search">
-              <mat-icon class="!w-5 !h-5 !text-[20px]">search</mat-icon>
-            </button>
-
-            <!-- Sign In / My Account -->
-            <button
-              type="button"
-              (click)="market.openAccount('orders')"
-              class="flex items-center gap-2 text-left hover:text-[#0D5C3A] transition-colors cursor-pointer group"
-              [class.text-[#0D5C3A]]="market.currentView() === 'account'"
-              title="Sign In / My Account">
-              <div 
-                class="w-8 h-8 rounded-full border flex items-center justify-center transition-colors"
-                [class.border-[#0D5C3A]]="market.currentView() === 'account'"
-                [class.bg-[#0D5C3A]/10]="market.currentView() === 'account'"
-                [class.text-[#0D5C3A]]="market.currentView() === 'account'"
-                [class.border-slate-300]="market.currentView() !== 'account'"
-                [class.text-[#15365B]]="market.currentView() !== 'account'"
-                [class.group-hover:border-[#0D5C3A]]="market.currentView() !== 'account'">
-                <mat-icon class="!w-5 !h-5 !text-[20px]">person_outline</mat-icon>
-              </div>
-              <div class="hidden sm:flex flex-col text-xs leading-none">
-                <span class="font-bold text-[#15365B] group-hover:text-[#0D5C3A]" [class.text-[#0D5C3A]]="market.currentView() === 'account'">Yashdeep</span>
-                <span class="text-[10px] text-[#667085] mt-0.5">My Account</span>
-              </div>
-            </button>
-
-            <!-- Wishlist -->
-            <button
-              type="button"
-              (click)="market.setView('wishlist')"
-              class="flex items-center gap-1.5 text-left hover:text-[#0D5C3A] transition-colors cursor-pointer"
-              title="Saved Items">
-              <div class="relative">
-                <mat-icon class="!w-6 !h-6 !text-[22px] text-[#15365B]">favorite_border</mat-icon>
-                @if (market.wishlistIds().length > 0) {
-                  <span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#E67E22] text-white text-[9px] font-bold flex items-center justify-center">
-                    {{ market.wishlistIds().length }}
-                  </span>
-                }
-              </div>
-              <span class="text-xs font-bold text-[#15365B] hidden lg:inline">Wishlist</span>
-            </button>
-
-            <!-- Cart with Orange Badge '3' -->
-            <button
-              type="button"
-              (click)="market.toggleCartDrawer(true)"
-              class="flex items-center gap-2 text-left hover:text-[#0D5C3A] transition-colors cursor-pointer"
-              title="Shopping Cart">
-              <div class="relative">
-                <mat-icon class="!w-6 !h-6 !text-[24px] text-[#15365B]">shopping_cart</mat-icon>
-                <span class="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 rounded-full bg-[#E67E22] text-white text-[10px] font-black flex items-center justify-center leading-none shadow-xs">
-                  {{ market.cartCount() > 0 ? market.cartCount() : 3 }}
-                </span>
-              </div>
-              <span class="text-xs font-bold text-[#15365B] hidden lg:inline">Cart</span>
-            </button>
-
-          </div>
-
-        </div>
-
-        <!-- Mobile Search Dropdown -->
-        @if (isMobileSearchOpen()) {
-          <div class="mt-3 pt-3 border-t border-slate-100 md:hidden">
-            <div class="relative flex items-center">
-              <input
-                type="text"
-                [value]="market.searchQuery()"
-                (input)="onSearchInput($event)"
-                (keydown.enter)="executeSearch()"
-                placeholder="Search products, GI crafts, SHGs..."
-                class="w-full pl-9 pr-16 py-2 text-xs bg-[#F8F7F2] border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#0D5C3A]"
-              />
-              <div class="absolute left-2.5 text-slate-400">
-                <mat-icon class="!w-4 !h-4 !text-[16px]">search</mat-icon>
-              </div>
-              <button
-                type="button"
-                (click)="executeSearch()"
-                class="absolute right-1 px-3 py-1 bg-[#0D5C3A] text-white text-[11px] font-bold rounded">
-                Search
-              </button>
+              }
             </div>
           </div>
         }
+
       </div>
-
-      <!-- Secondary Subnavigation Menu -->
-      <nav class="border-t border-[#E5E7EB] bg-white text-xs font-medium text-[#1D2939] hidden md:block">
-        <div class="max-w-[1440px] mx-auto px-4 sm:px-8 flex items-center justify-between overflow-x-auto no-scrollbar">
-          
-          <div class="flex items-center gap-1">
-            <button 
-              type="button" 
-              (click)="market.setView('catalogue')"
-              class="px-3 py-2.5 hover:text-[#0D5C3A] font-semibold flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap">
-              <span>All Products</span>
-              <mat-icon class="!w-3.5 !h-3.5 !text-[14px] text-slate-400">keyboard_arrow_down</mat-icon>
-            </button>
-
-            <button 
-              type="button" 
-              (click)="market.selectCategory('handicrafts-pottery')"
-              class="px-3 py-2.5 hover:text-[#0D5C3A] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap">
-              <span>Handicrafts</span>
-              <mat-icon class="!w-3.5 !h-3.5 !text-[14px] text-slate-400">keyboard_arrow_down</mat-icon>
-            </button>
-
-            <button 
-              type="button" 
-              (click)="market.selectCategory('handloom-textiles')"
-              class="px-3 py-2.5 hover:text-[#0D5C3A] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap">
-              <span>Handloom & Textiles</span>
-              <mat-icon class="!w-3.5 !h-3.5 !text-[14px] text-slate-400">keyboard_arrow_down</mat-icon>
-            </button>
-
-            <button 
-              type="button" 
-              (click)="market.selectCategory('organic-food')"
-              class="px-3 py-2.5 hover:text-[#0D5C3A] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap">
-              <span>Food & Beverages</span>
-              <mat-icon class="!w-3.5 !h-3.5 !text-[14px] text-slate-400">keyboard_arrow_down</mat-icon>
-            </button>
-
-            <button 
-              type="button" 
-              (click)="market.selectCategory('organic-food')"
-              class="px-3 py-2.5 hover:text-[#0D5C3A] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap">
-              <span>Organic & Natural</span>
-              <mat-icon class="!w-3.5 !h-3.5 !text-[14px] text-slate-400">keyboard_arrow_down</mat-icon>
-            </button>
-
-            <button 
-              type="button" 
-              (click)="market.selectCategory('handicrafts-pottery')"
-              class="px-3 py-2.5 hover:text-[#0D5C3A] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap">
-              <span>Home & Living</span>
-              <mat-icon class="!w-3.5 !h-3.5 !text-[14px] text-slate-400">keyboard_arrow_down</mat-icon>
-            </button>
-
-            <button 
-              type="button" 
-              (click)="market.setView('catalogue')"
-              class="px-3 py-2.5 hover:text-[#0D5C3A] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap">
-              <span>Regional Collections</span>
-              <mat-icon class="!w-3.5 !h-3.5 !text-[14px] text-slate-400">keyboard_arrow_down</mat-icon>
-            </button>
-
-            <button 
-              type="button" 
-              (click)="market.setView('sellers')"
-              class="px-3 py-2.5 hover:text-[#0D5C3A] transition-colors cursor-pointer whitespace-nowrap">
-              <span>Our Sellers</span>
-            </button>
-
-            <button 
-              type="button" 
-              (click)="market.setView('craft-map')"
-              class="px-3 py-2.5 font-bold flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
-              [class.text-[#0D5C3A]]="market.currentView() === 'craft-map'"
-              [class.hover:text-[#0D5C3A]]="market.currentView() !== 'craft-map'">
-              <mat-icon class="!w-3.5 !h-3.5 !text-[15px] text-[#0D5C3A]">map</mat-icon>
-              <span>Craft Map</span>
-            </button>
-
-            <button 
-              type="button" 
-              (click)="market.setView('initiatives')"
-              class="px-3 py-2.5 hover:text-[#0D5C3A] transition-colors cursor-pointer whitespace-nowrap">
-              <span>Government Initiatives</span>
-            </button>
-          </div>
-
-        </div>
-      </nav>
-
     </header>
   `
 })
-export class Header {
+export class Header implements OnDestroy {
   readonly market = inject(MarketplaceService);
 
-  readonly isMobileSearchOpen = signal<boolean>(false);
-  readonly showSuggestions = signal<boolean>(false);
+  readonly isSearchOpen = signal(false);
+  readonly isMobileMenuOpen = signal(false);
+  readonly showSuggestions = signal(false);
+  
+  // Mega Menu State
+  readonly isMegaMenuOpen = signal(false);
+  readonly activeColumn = signal<string>('all');
+  private pinnedColumnId: string | null = null;
+  private closeTimer: ReturnType<typeof setTimeout> | null = null;
 
-  readonly suggestions = signal<string[]>([
+  readonly suggestions = signal([
     'Chanderi Silk Saree',
     'Bastar Dhokra Brass',
     'Wild Forest Honey',
@@ -318,24 +686,351 @@ export class Header {
     'Channapatna Wooden Toys'
   ]);
 
+  // Column 1: Shop by Category
+  readonly categoryColumn: MegaMenuColumn = {
+    id: 'category',
+    icon: 'grid_view',
+    title: 'Shop by Category',
+    vignetteImage: '/assets/images/card%201.png',
+    links: [
+      {
+        label: 'New Arrivals',
+        action: () => {
+          this.market.resetFilters();
+          this.market.filters.update(f => ({ ...f, sortBy: 'featured' }));
+          this.market.setView('catalogue');
+          this.market.showToast('Showing New Handcrafted Arrivals', 'info');
+        }
+      },
+      {
+        label: 'Bestsellers',
+        action: () => {
+          this.market.resetFilters();
+          this.market.filters.update(f => ({ ...f, sortBy: 'rating' }));
+          this.market.setView('catalogue');
+          this.market.showToast('Showing Most Loved Bestsellers', 'info');
+        }
+      },
+      {
+        label: 'Home & Living',
+        action: () => {
+          this.market.selectCategory('handicrafts-pottery');
+        }
+      },
+      {
+        label: 'Apparel & Textiles',
+        action: () => {
+          this.market.selectCategory('handloom-textiles');
+        }
+      },
+      {
+        label: 'Jewellery',
+        action: () => {
+          this.market.selectCategory('tribal-metalcraft');
+        }
+      },
+      {
+        label: 'Decor & Art',
+        action: () => {
+          this.market.selectCategory('traditional-art');
+        }
+      },
+      {
+        label: 'Gifts & Hampers',
+        action: () => {
+          this.market.resetFilters();
+          this.market.setSearchQuery('Gift');
+          this.market.setView('catalogue');
+        }
+      },
+      {
+        label: 'Sale & Offers',
+        action: () => {
+          this.market.resetFilters();
+          this.market.filters.update(f => ({ ...f, sortBy: 'discount' }));
+          this.market.setView('catalogue');
+          this.market.showToast('Showing Direct Artisan Special Offers', 'info');
+        }
+      }
+    ]
+  };
+
+  // Column 2: Collections
+  readonly collectionsColumn: MegaMenuColumn = {
+    id: 'collections',
+    icon: 'local_offer',
+    title: 'Collections',
+    vignetteImage: '/assets/images/card%202.png',
+    links: [
+      {
+        label: 'Festive Collection',
+        action: () => {
+          this.market.resetFilters();
+          this.market.setSearchQuery('Diwali');
+          this.market.setView('catalogue');
+          this.market.showToast('Showing Festive Puja & Celebration Curations', 'info');
+        }
+      },
+      {
+        label: 'Wedding Collection',
+        action: () => {
+          this.market.resetFilters();
+          this.market.setSearchQuery('Banarasi');
+          this.market.setView('catalogue');
+          this.market.showToast('Showing Wedding & Heirloom Handloom Treasures', 'info');
+        }
+      },
+      {
+        label: 'Handcrafted Essentials',
+        action: () => {
+          this.market.resetFilters();
+          this.market.setSearchQuery('Handcrafted');
+          this.market.setView('catalogue');
+        }
+      },
+      {
+        label: 'Regional Specialities',
+        action: () => {
+          this.market.resetFilters();
+          this.market.filters.update(f => ({ ...f, onlyGI: true }));
+          this.market.setView('catalogue');
+          this.market.showToast('Showing 100% Certified GI Tagged Specialties', 'info');
+        }
+      },
+      {
+        label: 'Sustainable Crafts',
+        action: () => {
+          this.market.selectCategory('organic-food');
+          this.market.showToast('Showing Sustainable & Organic Certified Crafts', 'info');
+        }
+      },
+      {
+        label: 'Corporate Gifting',
+        action: () => {
+          this.market.resetFilters();
+          this.market.setSearchQuery('Brass');
+          this.market.setView('catalogue');
+          this.market.showToast('Showing Bulk & Corporate Gifting Curations', 'info');
+        }
+      }
+    ]
+  };
+
+  // Column 3: Artisan & Brands
+  readonly artisansColumn: MegaMenuColumn = {
+    id: 'artisans',
+    icon: 'workspace_premium',
+    title: 'Artisan & Brands',
+    vignetteImage: '/assets/images/card%203.png',
+    links: [
+      {
+        label: 'Our Artisans',
+        action: () => {
+          this.market.setView('sellers');
+        }
+      },
+      {
+        label: 'Verified Producers',
+        action: () => {
+          this.market.setView('sellers');
+          this.market.showToast('Displaying Certified SHG & Artisan Guilds', 'info');
+        }
+      },
+      {
+        label: 'Featured Brands',
+        action: () => {
+          this.market.setView('sellers');
+        }
+      },
+      {
+        label: 'Cooperative Societies',
+        action: () => {
+          this.market.setView('sellers');
+          this.market.showToast('Connecting with Regional Weaver Cooperatives', 'info');
+        }
+      },
+      {
+        label: 'State Collections',
+        action: () => {
+          this.market.setView('craft-map');
+          this.market.showToast('Interactive Bharat Craft Map loaded', 'success');
+        }
+      },
+      {
+        label: 'Artisan Stories',
+        action: () => {
+          this.market.setView('about');
+        }
+      }
+    ]
+  };
+
+  // Column 4: Help & Support
+  readonly supportColumn: MegaMenuColumn = {
+    id: 'support',
+    icon: 'headset_mic',
+    title: 'Help & Support',
+    vignetteImage: '/assets/images/card%204.png',
+    links: [
+      {
+        label: 'Track Your Order',
+        action: () => {
+          this.market.openAccount('orders');
+        }
+      },
+      {
+        label: 'Returns & Refunds',
+        action: () => {
+          this.market.openSupport('returns');
+        }
+      },
+      {
+        label: 'Cancellation Policy',
+        action: () => {
+          this.market.openSupport('cancellation');
+        }
+      },
+      {
+        label: 'FAQs',
+        action: () => {
+          this.market.openSupport('faqs');
+        }
+      },
+      {
+        label: 'Contact Us',
+        action: () => {
+          this.market.openSupport('contact');
+        }
+      },
+      {
+        label: 'Grievance Redressal',
+        action: () => {
+          this.market.openAccount('grievance');
+        }
+      }
+    ]
+  };
+
+  // Column 5: My Account
+  readonly accountColumn: MegaMenuColumn = {
+    id: 'account',
+    icon: 'person_outline',
+    title: 'My Account',
+    vignetteImage: '/assets/images/card%205.png',
+    links: [
+      {
+        label: 'Login / Sign Up',
+        action: () => {
+          this.market.openAccount('profile');
+        }
+      },
+      {
+        label: 'My Orders',
+        action: () => {
+          this.market.openAccount('orders');
+        }
+      },
+      {
+        label: 'My Wishlist',
+        action: () => {
+          this.market.setView('wishlist');
+        }
+      },
+      {
+        label: 'My Addresses',
+        action: () => {
+          this.market.openAccount('addresses');
+        }
+      },
+      {
+        label: 'Payment Methods',
+        action: () => {
+          this.market.openAccount('payments');
+        }
+      },
+      {
+        label: 'Profile Settings',
+        action: () => {
+          this.market.openAccount('profile');
+        }
+      }
+    ]
+  };
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.closeMegaMenu();
+    this.isSearchOpen.set(false);
+  }
+
+  onNavHover(columnId: string) {
+    this.cancelCloseTimer();
+    this.activeColumn.set(columnId);
+    this.isMegaMenuOpen.set(true);
+    this.isSearchOpen.set(false);
+  }
+
+  onNavClick(columnId: string) {
+    this.cancelCloseTimer();
+    if (this.isMegaMenuOpen() && this.pinnedColumnId === columnId) {
+      this.closeMegaMenu();
+      return;
+    }
+
+    this.pinnedColumnId = columnId;
+    this.activeColumn.set(columnId);
+    this.isMegaMenuOpen.set(true);
+    this.isSearchOpen.set(false);
+    this.isMobileMenuOpen.set(false);
+  }
+
+  onNavLeave() {
+    this.cancelCloseTimer();
+    if (this.pinnedColumnId !== null) return;
+
+    this.closeTimer = setTimeout(() => {
+      this.closeMegaMenu();
+    }, 280);
+  }
+
+  cancelCloseTimer() {
+    if (this.closeTimer) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = null;
+    }
+  }
+
+  closeMegaMenu() {
+    this.cancelCloseTimer();
+    this.pinnedColumnId = null;
+    this.isMegaMenuOpen.set(false);
+  }
+
   onSearchInput(event: Event) {
     const value = (event.target as HTMLInputElement).value;
     this.market.setSearchQuery(value);
   }
 
-  onCategoryChange(catSlug: string) {
-    this.market.selectCategory(catSlug);
-  }
-
   executeSearch() {
     this.showSuggestions.set(false);
-    this.isMobileSearchOpen.set(false);
+    this.isSearchOpen.set(false);
     this.market.setView('catalogue');
   }
 
   pickSuggestion(text: string) {
     this.market.setSearchQuery(text);
     this.showSuggestions.set(false);
+    this.isSearchOpen.set(false);
     this.market.setView('catalogue');
+  }
+
+  navigate(view: 'home' | 'catalogue' | 'sellers' | 'about' | 'craft-map') {
+    this.market.setView(view);
+    this.isMobileMenuOpen.set(false);
+    this.closeMegaMenu();
+  }
+
+  ngOnDestroy() {
+    this.cancelCloseTimer();
   }
 }

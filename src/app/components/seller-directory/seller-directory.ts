@@ -21,7 +21,7 @@ import { HERO_IMAGE } from '../../data/mock-data';
           {{ market.currentLanguage() === 'en' ? 'Verified Rural Artisans & SHG Cooperatives' : 'सत्यापित ग्रामीण कारीगर एवं स्वयं सहायता समूह' }}
         </h1>
         <p class="text-xs sm:text-sm text-[#667085] mt-1 max-w-2xl leading-relaxed">
-          Every organization on Bharat Shilp is verified through the Ministry of Rural Development, TRIFED, or State Handloom Boards with direct bank transfer integration.
+          Every organization on Shreem is verified through the Ministry of Rural Development, TRIFED, or State Handloom Boards with direct bank transfer integration.
         </p>
       </div>
 

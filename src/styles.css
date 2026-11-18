@@ -1,15 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 @import "tailwindcss";
 
 @layer base {
   :root {
-    --font-primary: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    --font-hindi: 'Noto Sans Devanagari', 'Plus Jakarta Sans', sans-serif;
+    --font-primary: 'Outfit', system-ui, -apple-system, sans-serif;
+    --font-hindi: 'Noto Sans Devanagari', 'Outfit', sans-serif;
   }
   
   body {
     font-family: var(--font-primary);
   }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    font-size: clamp(16px, 1.1vw, 22px);
+  }
+
+  [class~="max-w-[1320px]"] { max-width: min(96vw, 2560px); }
+  [class~="max-w-[1440px]"] { max-width: min(96vw, 2800px); }
+  [class~="max-w-[1600px]"] { max-width: min(96vw, 3000px); }
+  [class~="max-w-[1640px]"] { max-width: min(96vw, 3000px); }
+  [class~="max-w-[1720px]"] { max-width: min(96vw, 3200px); }
+}
+
+@media (min-width: 1800px) {
+  app-hero-carousel section {
+    height: clamp(500px, 28vw, 600px);
+  }
+
+  [class~="max-w-[700px]"] { max-width: min(52vw, 1000px); }
 }
 
 /* Custom scrollbars for clean UI */

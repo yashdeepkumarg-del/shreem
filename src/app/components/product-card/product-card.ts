@@ -11,18 +11,21 @@ import { MatIconModule } from '@angular/material/icon';
     <article 
       tabindex="0"
       role="button"
-      (keydown.enter)="market.openProductDetail(product())"
-      (click)="market.openProductDetail(product())"
-      class="group bg-white rounded-xl border border-[#E5E7EB] hover:border-[#176B45]/40 hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden relative cursor-pointer focus-visible:outline-[#176B45]">
+      (mouseenter)="scheduleProductPreview()"
+      (mouseleave)="cancelProductPreview()"
+      (keydown.enter)="openProductDetail()"
+      (click)="openProductDetail()"
+      class="group bg-white rounded-xl border border-[#E5E7EB] hover:border-[#176B45]/50 hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden relative cursor-pointer focus-visible:outline-[#176B45]">
       
       <!-- Top Image Slot with Styled CSS/SVG Fallback -->
-      <div class="relative aspect-4/3 sm:aspect-square bg-[#F8F7F2] overflow-hidden">
+      <div class="relative aspect-4/3 overflow-hidden bg-[#F8F7F2] p-2.5 sm:aspect-square sm:p-3">
+        <span class="pointer-events-none absolute inset-8 z-0 rounded-full bg-white/80 blur-2xl" aria-hidden="true"></span>
         <img
           [src]="product().primaryImage"
           [alt]="product().name"
           referrerpolicy="no-referrer"
           loading="lazy"
-          class="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
+          class="relative z-10 h-full w-full scale-[1.04] rounded-xl object-cover shadow-[0_8px_20px_rgba(21,54,91,0.12)] transition-transform duration-500 group-hover:scale-110"
         />
 
         <!-- Subtle Top Left Trust Markers (Unboxed clean text) -->
@@ -67,7 +70,7 @@ import { MatIconModule } from '@angular/material/icon';
       </div>
 
       <!-- Content Area -->
-      <div class="p-3.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2">
+      <div class="p-3.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2 bg-gradient-to-br from-emerald-50 via-white to-amber-50/80 group-hover:from-emerald-100 group-hover:to-amber-100">
         
         <!-- Clean unboxed metadata with middot separator -->
         <div class="flex items-center gap-1.5 text-[11px] text-[#667085] leading-none">
@@ -134,6 +137,27 @@ import { MatIconModule } from '@angular/material/icon';
 export class ProductCard {
   readonly product = input.required<Product>();
   readonly market = inject(MarketplaceService);
+  private previewTimer: ReturnType<typeof setTimeout> | null = null;
+
+  scheduleProductPreview() {
+    this.cancelProductPreview();
+    this.previewTimer = setTimeout(() => {
+      this.market.openProductPreview(this.product());
+      this.previewTimer = null;
+    }, 2000);
+  }
+
+  cancelProductPreview() {
+    if (this.previewTimer !== null) {
+      clearTimeout(this.previewTimer);
+      this.previewTimer = null;
+    }
+  }
+
+  openProductDetail() {
+    this.cancelProductPreview();
+    this.market.openProductDetail(this.product());
+  }
 
   isWishlisted(): boolean {
     return this.market.isInWishlist(this.product().id);

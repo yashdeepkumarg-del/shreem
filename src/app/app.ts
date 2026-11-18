@@ -10,6 +10,7 @@ import { SellerDirectory } from './components/seller-directory/seller-directory'
 import { InitiativeSection } from './components/initiative-section/initiative-section';
 import { AboutSection } from './components/about-section/about-section';
 import { ProductDetailPage } from './components/product-detail-page/product-detail-page';
+import { ProductPreviewDialog } from './components/product-preview-dialog/product-preview-dialog';
 import { CraftMap } from './components/craft-map/craft-map';
 import { CartDrawer } from './components/cart-drawer/cart-drawer';
 import { CheckoutModal } from './components/checkout-modal/checkout-modal';
@@ -17,6 +18,7 @@ import { AccountPage } from './components/account-page/account-page';
 import { TrustFooter } from './components/trust-footer/trust-footer';
 import { MobileNav } from './components/mobile-nav/mobile-nav';
 import { ToastContainer } from './components/toast-container/toast-container';
+import { SupportModal } from './components/support-modal/support-modal';
 import { MatIconModule } from '@angular/material/icon';
 import { BRASS_DHOKRA_IMAGE, HANDLOOM_IMAGE, HERO_IMAGE, ORGANIC_HONEY_IMAGE } from './data/mock-data';
 
@@ -34,6 +36,7 @@ import { BRASS_DHOKRA_IMAGE, HANDLOOM_IMAGE, HERO_IMAGE, ORGANIC_HONEY_IMAGE } f
     InitiativeSection,
     AboutSection,
     ProductDetailPage,
+    ProductPreviewDialog,
     CraftMap,
     AccountPage,
     CartDrawer,
@@ -41,6 +44,7 @@ import { BRASS_DHOKRA_IMAGE, HANDLOOM_IMAGE, HERO_IMAGE, ORGANIC_HONEY_IMAGE } f
     TrustFooter,
     MobileNav,
     ToastContainer,
+    SupportModal,
     MatIconModule
   ],
   templateUrl: './app.html',

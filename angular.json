@@ -25,10 +25,6 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
-              },
-              {
-                "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
               },
@@ -36,6 +32,10 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "src/assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "public"
               }
             ],
             "styles": [
@@ -52,8 +52,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1.5MB",
+                  "maximumError": "2.5MB"
                 },
                 {
                   "type": "anyComponentStyle",

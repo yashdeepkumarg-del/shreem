@@ -1,13 +1,31 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  OnInit,
+  inject,
+  signal
+} from '@angular/core';
 import { MarketplaceService } from '../../services/marketplace.service';
 import { MatIconModule } from '@angular/material/icon';
 
-interface RegionalHighlight {
+interface CarouselSlide {
   id: string;
-  name: string;
-  tagline: string;
-  avatar: string;
-  stateQuery: string;
+  badge: string;
+  titleLine1: string;
+  titleLine2: string;
+  titleAccentColor: string;
+  description: string;
+  primaryCtaText: string;
+  primaryCtaIcon: string;
+  primaryAction: () => void;
+  secondaryCtaText: string;
+  secondaryCtaIcon: string;
+  secondaryAction: () => void;
+  image: string;
+  imageAlt: string;
+  tagText: string;
+  tagIcon: string;
 }
 
 @Component({
@@ -15,276 +33,223 @@ interface RegionalHighlight {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatIconModule],
   template: `
-    <!-- HERO: Full-bleed background image with left-side fade only -->
-    <section class="relative overflow-hidden border-b border-[#E5E7EB] min-h-[460px] sm:min-h-[500px] lg:min-h-[540px] flex items-center">
+    <section
+      class="group/carousel relative isolate min-h-[440px] overflow-hidden bg-[#00483f] sm:min-h-[500px] lg:h-[436px] lg:min-h-0 select-none"
+      aria-label="Featured Indian handicrafts carousel"
+      (mouseenter)="isPaused.set(true)"
+      (mouseleave)="isPaused.set(false)"
+      tabindex="0"
+      (keydown.arrowleft)="prevSlide()"
+      (keydown.arrowright)="nextSlide()">
 
-      <!-- Background Image — pure clean natural image, no fade overlays -->
-      <img
-        src="/assets/hero/hero_clean_bg.png"
-        alt="Indian artisan crafting traditional products with scenic backdrop"
-        class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"
-        aria-hidden="true"
-      />
+      <!-- ======================================================== -->
+      <!-- 2. SLIDES CONTAINER                                      -->
+      <!-- ======================================================== -->
+      @for (slide of slides; track slide.id; let idx = $index) {
+        <div
+          class="absolute inset-0 transition-opacity duration-700 ease-in-out"
+          [class.opacity-100]="activeIndex() === idx"
+          [class.opacity-0]="activeIndex() !== idx"
+          [class.pointer-events-none]="activeIndex() !== idx"
+          [attr.aria-hidden]="activeIndex() !== idx">
 
-      <!-- Content overlaid on background -->
-      <div class="relative z-10 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Right-side image with desktop angled mask -->
+          <img
+            [src]="slide.image"
+            [alt]="slide.imageAlt"
+            class="absolute inset-0 h-full w-full object-cover object-[64%_54%] lg:inset-y-0 lg:left-[31%] lg:right-0 lg:w-[69%] lg:object-center"
+          />
 
-          <!-- LEFT: Text, Headline & CTAs (Span 5) -->
-          <div class="lg:col-span-5 flex flex-col justify-center space-y-4">
+          <!-- Mobile / Tablet dark fade overlay -->
+          <div class="absolute inset-0 bg-gradient-to-r from-[#00483f] via-[#00483f]/95 to-[#00483f]/60 lg:hidden"></div>
 
-            <!-- Kicker with Flag -->
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] font-bold tracking-widest text-[#52525B] uppercase leading-none">
-                INDIAN PRODUCTS &nbsp;•&nbsp; INDIAN PEOPLE &nbsp;•&nbsp; STRONGER INDIA
-              </span>
-              <div class="flex h-1.5 w-7 rounded overflow-hidden shrink-0 shadow-2xs">
-                <div class="flex-1 bg-[#FF9933]"></div>
-                <div class="flex-1 bg-white border-y border-slate-200"></div>
-                <div class="flex-1 bg-[#138808]"></div>
-              </div>
-            </div>
-
-            <!-- 3-Line Distinctive Colored Headline -->
-            <h1 class="text-3xl sm:text-4xl lg:text-[2.85rem] font-black tracking-tight leading-[1.07] font-serif">
-              <span class="block text-[#11233B]">Real People.</span>
-              <span class="block text-[#0D5C3A]">Real Products.</span>
-              <span class="block text-[#C25E1A]">A Stronger India.</span>
-            </h1>
-
-            <!-- Subheading -->
-            <p class="text-[13px] sm:text-sm text-[#475467] max-w-sm leading-relaxed">
-              {{ market.currentLanguage() === 'en'
-                ? 'Discover authentic products from local artisans, Self Help Groups, rural entrepreneurs and traditional Indian communities.'
-                : 'स्थानीय कारीगरों, स्वयं सहायता समूहों और ग्रामीण उद्यमियों से प्रमाणित विशुद्ध भारतीय उत्पादों की खोज करें।' }}
-            </p>
-
-            <!-- Action CTAs -->
-            <div class="flex flex-wrap gap-3 pt-1">
-              <button
-                type="button"
-                (click)="market.setView('catalogue')"
-                class="px-5 py-3 bg-[#0D5C3A] hover:bg-[#09432A] text-white font-bold text-sm rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer group">
-                <span>Explore Products</span>
-                <mat-icon class="!w-4 !h-4 !text-[17px] group-hover:translate-x-0.5 transition-transform">arrow_forward</mat-icon>
-              </button>
-              <button
-                type="button"
-                (click)="isVideoModalOpen.set(true)"
-                class="px-4 py-3 bg-white/95 hover:bg-white text-[#1D2939] font-bold text-sm rounded-lg border border-[#D0D5DD] transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer">
-                <mat-icon class="!w-5 !h-5 !text-[19px] text-[#0D5C3A]">play_circle</mat-icon>
-                <span>Watch Our Story</span>
-              </button>
-            </div>
-
-            <!-- Trust Stats Grid (Small cards with clean semi-transparent background) -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-2.5 pt-3 border-t border-slate-300/60">
-              <div class="flex items-center gap-2 p-2 rounded-xl bg-white/90 backdrop-blur-xs border border-white/80 shadow-xs hover:shadow-sm transition-shadow">
-                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-[#0D5C3A] flex items-center justify-center shrink-0 border border-emerald-100">
-                  <mat-icon class="!w-4 !h-4 !text-[16px]">groups</mat-icon>
-                </div>
-                <div class="min-w-0">
-                  <div class="font-extrabold text-[12px] text-[#11233B] leading-tight truncate">50,000+</div>
-                  <div class="text-[9.5px] text-[#52525B] leading-tight truncate">Artisans &amp; SHGs</div>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-2 p-2 rounded-xl bg-white/90 backdrop-blur-xs border border-white/80 shadow-xs hover:shadow-sm transition-shadow">
-                <div class="w-7 h-7 rounded-lg bg-amber-50 text-[#D97706] flex items-center justify-center shrink-0 border border-amber-100">
-                  <mat-icon class="!w-4 !h-4 !text-[16px]">storefront</mat-icon>
-                </div>
-                <div class="min-w-0">
-                  <div class="font-extrabold text-[12px] text-[#11233B] leading-tight truncate">10,000+</div>
-                  <div class="text-[9.5px] text-[#52525B] leading-tight truncate">Verified Sellers</div>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-2 p-2 rounded-xl bg-white/90 backdrop-blur-xs border border-white/80 shadow-xs hover:shadow-sm transition-shadow">
-                <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0 border border-sky-100">
-                  <mat-icon class="!w-4 !h-4 !text-[16px]">verified</mat-icon>
-                </div>
-                <div class="min-w-0">
-                  <div class="font-extrabold text-[12px] text-[#11233B] leading-tight truncate">1 Lakh+</div>
-                  <div class="text-[9.5px] text-[#52525B] leading-tight truncate">Products</div>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-2 p-2 rounded-xl bg-white/90 backdrop-blur-xs border border-white/80 shadow-xs hover:shadow-sm transition-shadow">
-                <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center shrink-0 border border-rose-100">
-                  <mat-icon class="!w-4 !h-4 !text-[16px]">shield</mat-icon>
-                </div>
-                <div class="min-w-0">
-                  <div class="font-extrabold text-[12px] text-[#11233B] leading-tight truncate">Govt. Backed</div>
-                  <div class="text-[9.5px] text-[#52525B] leading-tight truncate">Certified Platform</div>
-                </div>
-              </div>
-            </div>
-
+          <!-- Desktop left-panel texture and divider; the right-side image remains unchanged -->
+          <div class="absolute inset-0 hidden lg:block" aria-hidden="true">
+            <svg class="h-full w-full" viewBox="0 0 1729 436" preserveAspectRatio="none">
+              <defs>
+                <clipPath id="hero-left-panel-clip">
+                  <path d="M0 0H930C861 84 817 178 811 261C806 332 819 389 840 436H0Z"></path>
+                </clipPath>
+                <pattern id="hero-left-panel-texture" width="18" height="18" patternUnits="userSpaceOnUse">
+                  <circle cx="2" cy="2" r="1" fill="#d7a831" opacity=".18"></circle>
+                </pattern>
+              </defs>
+              <path d="M0 0H930C861 84 817 178 811 261C806 332 819 389 840 436H0Z" fill="#00483f"></path>
+              <path d="M930 0C861 84 817 178 811 261C806 332 819 389 840 436" fill="none" stroke="#f8bd00" stroke-width="8"></path>
+              <g clip-path="url(#hero-left-panel-clip)">
+                <path d="M0 0H930C861 84 817 178 811 261C806 332 819 389 840 436H0Z" fill="url(#hero-left-panel-texture)"></path>
+                <path d="M0 0H145L0 110Z" fill="#f8bd00" opacity=".12"></path>
+                <path d="M0 15C40 22 58 67 0 87M0 28C28 35 40 62 0 74M690 0C720 36 730 77 709 111M715 0C745 29 759 57 754 88" fill="none" stroke="#d7a831" stroke-width="2" opacity=".45"></path>
+                <g fill="none" stroke="#d7a831" stroke-width="1.5" opacity=".48">
+                  <path d="M0 28C24 39 34 57 32 80C30 103 16 118 0 124M0 42C16 50 22 63 21 80C20 96 10 106 0 111"></path>
+                  <path d="M744 347C763 359 775 377 778 400M758 337C780 353 793 373 796 398M730 362C750 374 761 390 763 411"></path>
+                  <path d="M762 379C747 370 743 360 748 351C758 354 766 362 768 374C770 359 778 350 789 348C794 359 789 370 775 380C789 377 800 382 805 392C796 401 783 400 773 389C779 401 776 412 767 419C757 412 755 400 762 389C751 397 739 396 731 388C736 378 748 375 762 379Z"></path>
+                </g>
+              </g>
+            </svg>
           </div>
 
-          <!-- CENTER: Empty space so center artisan collage is visible (Span 3) -->
-          <div class="hidden lg:block lg:col-span-3 min-h-[300px]"></div>
+          <!-- Slide Content Overlaid on Left -->
+          <div class="relative z-10 mx-auto flex min-h-[440px] max-w-[1600px] items-center px-4 py-8 sm:min-h-[500px] sm:px-8 lg:h-full lg:min-h-0 lg:px-16 lg:py-8">
+            <div class="max-w-[700px] text-left text-white lg:w-[50%]">
+              <div class="mb-3 flex h-7 w-16 items-center justify-center text-[#d7a831]" aria-hidden="true">
+                <svg viewBox="0 0 64 28" class="h-full w-full" fill="none">
+                  <path d="M3 14h17m24 0h17M20 14l4-2m16 2-4-2" stroke="currentColor" stroke-width="1"></path>
+                  <path d="M32 4c-4 4-5 7-5 10 3-1 5-3 5-6 0 3 2 5 5 6 0-3-1-6-5-10ZM24 15c2-2 5-2 8-1 3-1 6-1 8 1-2 4-5 6-8 6s-6-2-8-6Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"></path>
+                  <path d="M29 22h6" stroke="currentColor" stroke-width="1"></path>
+                </svg>
+              </div>
 
-          <!-- RIGHT: Curved Arc Flow of Regional Cards (Span 4) -->
-          <div class="lg:col-span-4 relative flex flex-col items-end space-y-3.5">
+              <!-- Kicker Badge -->
+              <div class="mb-3 flex items-center gap-2 text-[10px] font-bold tracking-[.16em] text-white/90 sm:text-xs">
+                <span>{{ slide.badge }}</span>
+              </div>
 
-            <!-- 5 Curved Highlight Cards matching referred design -->
-            @for (reg of regionalHighlights; track reg.id; let idx = $index) {
-              <button
-                type="button"
-                (click)="filterByRegion(reg.stateQuery)"
-                class="relative bg-white/95 hover:bg-white text-left rounded-full p-1.5 pr-4 border border-white/80 shadow-md hover:shadow-xl transition-all duration-200 flex items-center gap-3 group cursor-pointer w-[245px] sm:w-[265px]"
-                [style.transform]="getCurvedOffset(idx)">
-                
-                <!-- Circular Avatar enlarged to overflow gracefully, while pill body remains same compact size -->
-                <div class="relative w-15 h-15 -my-2.5 -ml-1 rounded-full overflow-hidden shrink-0 ring-3 ring-white shadow-md group-hover:scale-105 transition-transform bg-stone-100">
-                  <img
-                    [src]="reg.avatar"
-                    [alt]="reg.name"
-                    class="w-full h-full object-cover"
-                  />
-                  <!-- Pin icon on the top card -->
-                  @if (idx === 0) {
-                    <div class="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-white rounded-full flex items-center justify-center text-[#0D5C3A] shadow-xs">
-                      <mat-icon class="!w-3 !h-3 !text-[12px]">location_on</mat-icon>
-                    </div>
-                  }
-                </div>
+              <!-- Main Heading -->
+              <h1 class="text-[2rem] font-black leading-[1.06] tracking-tight max-[300px]:text-[1.75rem] min-[360px]:text-[2.35rem] sm:text-5xl lg:text-[3.25rem]">
+                <span class="block">{{ slide.titleLine1 }}</span>
+                <span class="block" [style.color]="slide.titleAccentColor">{{ slide.titleLine2 }}</span>
+              </h1>
 
-                <!-- Text info -->
-                <div class="flex-1 min-w-0 pr-0.5">
-                  <div class="font-black text-[11px] text-[#11233B] group-hover:text-[#0D5C3A] tracking-wider uppercase leading-tight truncate">
-                    {{ reg.name }}
-                  </div>
-                  <div class="text-[9.5px] text-[#667085] leading-tight truncate mt-0.5">
-                    {{ reg.tagline }}
-                  </div>
-                </div>
+              <!-- Description -->
+              <p class="mt-3 max-w-[540px] text-[13px] leading-[1.45] text-white/90 sm:mt-3.5 sm:text-sm sm:leading-relaxed">
+                {{ slide.description }}
+              </p>
 
-                <!-- Subtle arrow circle (right) -->
-                <div class="w-5 h-5 rounded-full bg-slate-100 group-hover:bg-[#0D5C3A] group-hover:text-white text-slate-500 flex items-center justify-center shrink-0 transition-colors">
-                  <mat-icon class="!w-3 !h-3 !text-[12px]">arrow_forward</mat-icon>
-                </div>
-              </button>
-            }
+              <!-- CTAs & Floating Tag -->
+              <div class="mt-5 flex flex-wrap items-center gap-2 sm:mt-6 sm:gap-3">
+                <button
+                  type="button"
+                  (click)="slide.primaryAction()"
+                  class="group inline-flex items-center gap-1.5 rounded-full bg-[#ffc400] px-4 py-2 text-xs font-extrabold text-[#063e35] shadow-lg transition hover:-translate-y-0.5 hover:bg-[#ffce24] cursor-pointer whitespace-nowrap sm:gap-2 sm:px-5 sm:py-2.5">
+                  <mat-icon class="!h-4 !w-4 !text-[18px] sm:!h-5 sm:!w-5 sm:!text-[20px]">{{ slide.primaryCtaIcon }}</mat-icon>
+                  <span class="whitespace-nowrap">{{ slide.primaryCtaText }}</span>
+                  <mat-icon class="!h-4 !w-4 !text-[16px] transition-transform group-hover:translate-x-1">arrow_forward</mat-icon>
+                </button>
 
+                <button
+                  type="button"
+                  (click)="slide.secondaryAction()"
+                  class="group inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-white/10 px-4 py-2 text-xs font-extrabold text-white shadow-md backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/20 cursor-pointer whitespace-nowrap sm:gap-2 sm:px-5 sm:py-2.5">
+                  <mat-icon class="!h-4 !w-4 !text-[16px]">{{ slide.secondaryCtaIcon }}</mat-icon>
+                  <span class="whitespace-nowrap">{{ slide.secondaryCtaText }}</span>
+                </button>
+              </div>
+
+            </div>
           </div>
 
         </div>
-      </div>
+      }
 
-      <!-- Video Story Modal -->
-      @if (isVideoModalOpen()) {
-        <div
-          role="dialog"
-          aria-modal="true"
-          tabindex="-1"
-          class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4"
-          (click)="isVideoModalOpen.set(false)"
-          (keydown.escape)="isVideoModalOpen.set(false)">
-          <div
-            role="document"
-            tabindex="0"
-            class="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl p-6 space-y-4"
-            (click)="$event.stopPropagation()"
-            (keydown)="$event.stopPropagation()">
+      <!-- ======================================================== -->
+      <!-- 3. CAROUSEL NAVIGATION CONTROLS                          -->
+      <!-- ======================================================== -->
+      @if (slides.length > 1) {
+        <!-- Previous Slide Arrow Button -->
+        <button
+          type="button"
+          (click)="prevSlide()"
+          class="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 hidden h-10 w-10 items-center justify-center rounded-full bg-black/30 text-white border border-white/20 backdrop-blur-md shadow-lg transition-all opacity-80 hover:opacity-100 hover:scale-105 cursor-pointer sm:flex sm:h-12 sm:w-12 sm:hover:bg-[#00332c]"
+          aria-label="Previous slide">
+          <mat-icon class="!h-5 !w-5 sm:!h-6 sm:!w-6 !text-[22px] sm:!text-[26px]">chevron_left</mat-icon>
+        </button>
 
-            <div class="flex items-center justify-between border-b pb-3 border-slate-100">
-              <h3 class="font-black text-base text-[#11233B]">Our Story: Hands that Build India</h3>
-              <button
-                type="button"
-                (click)="isVideoModalOpen.set(false)"
-                class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200">
-                <mat-icon class="!w-4 !h-4 !text-[18px]">close</mat-icon>
-              </button>
-            </div>
+        <!-- Next Slide Arrow Button -->
+        <button
+          type="button"
+          (click)="nextSlide()"
+          class="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 hidden h-10 w-10 items-center justify-center rounded-full bg-black/30 text-white border border-white/20 backdrop-blur-md shadow-lg transition-all opacity-80 hover:opacity-100 hover:scale-105 cursor-pointer sm:flex sm:h-12 sm:w-12 sm:hover:bg-[#00332c]"
+          aria-label="Next slide">
+          <mat-icon class="!h-5 !w-5 sm:!h-6 sm:!w-6 !text-[22px] sm:!text-[26px]">chevron_right</mat-icon>
+        </button>
 
-            <div class="aspect-16/9 rounded-xl overflow-hidden bg-slate-900 relative flex items-center justify-center">
-              <img src="/assets/hero/hero_bg.png" alt="Artisan documentary" class="w-full h-full object-cover opacity-80"/>
-              <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white p-6 text-center space-y-3">
-                <div class="w-16 h-16 rounded-full bg-[#0D5C3A] text-white flex items-center justify-center shadow-lg animate-pulse">
-                  <mat-icon class="!w-8 !h-8 !text-[36px]">play_arrow</mat-icon>
-                </div>
-                <div class="text-sm font-bold">BharatHaat National Rural Livelihoods Documentary</div>
-                <div class="text-xs text-white/80 max-w-md">
-                  Witness how 50,000+ women Self Help Groups and tribal artisans in over 700 districts are transforming local economy through direct digital commerce.
-                </div>
-              </div>
-            </div>
-
-            <div class="text-xs text-[#667085] flex justify-between items-center">
-              <span>Presented by Ministry of Rural Development &amp; TRIFED</span>
-              <button
-                type="button"
-                (click)="isVideoModalOpen.set(false); market.setView('catalogue')"
-                class="px-4 py-1.5 bg-[#0D5C3A] text-white font-bold rounded-lg text-xs">
-                Explore Their Products
-              </button>
-            </div>
-
-          </div>
+        <!-- Bottom Slide Indicators / Dots -->
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5 bg-black/30 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-full">
+          @for (slide of slides; track slide.id; let idx = $index) {
+            <button
+              type="button"
+              (click)="goToSlide(idx)"
+              class="relative transition-all duration-300 rounded-full cursor-pointer overflow-hidden"
+              [class.w-7]="activeIndex() === idx"
+              [class.h-2]="activeIndex() === idx"
+              [class.bg-[#ffc400]]="activeIndex() === idx"
+              [class.w-2]="activeIndex() !== idx"
+              [class.h-2]="activeIndex() !== idx"
+              [class.bg-white/45]="activeIndex() !== idx"
+              [attr.aria-label]="'Go to slide ' + (idx + 1)"
+              [attr.aria-current]="activeIndex() === idx ? 'true' : 'false'">
+            </button>
+          }
         </div>
       }
 
     </section>
   `
 })
-export class HeroCarousel {
+export class HeroCarousel implements OnInit, OnDestroy {
   readonly market = inject(MarketplaceService);
-  readonly isVideoModalOpen = signal<boolean>(false);
 
-  readonly regionalHighlights: RegionalHighlight[] = [
+  readonly activeIndex = signal<number>(0);
+  readonly isPaused = signal<boolean>(false);
+  private autoPlayTimer: ReturnType<typeof setInterval> | null = null;
+
+  readonly slides: CarouselSlide[] = [
     {
-      id: 'reg-himachal',
-      name: 'HIMACHAL',
-      tagline: 'Apples, Honey, Handicrafts',
-      avatar: '/assets/hero/reg_himachal.jpg',
-      stateQuery: 'Himachal Pradesh'
+      id: 'slide-treasures',
+      badge: 'TRADITIONAL • SUSTAINABLE • HANDMADE',
+      titleLine1: 'Discover India’s',
+      titleLine2: 'Handcrafted Treasures',
+      titleAccentColor: '#ffc400',
+      description: 'A curated collection of handmade art, décor, and everyday essentials by skilled Indian artisans, with a story in every piece.',
+      primaryCtaText: 'Shop Now',
+      primaryCtaIcon: 'shopping_bag',
+      primaryAction: () => this.market.setView('catalogue'),
+      secondaryCtaText: 'Explore Artisans',
+      secondaryCtaIcon: 'eco',
+      secondaryAction: () => this.market.setView('sellers'),
+      image: '/assets/images/HERO.png',
+      imageAlt: 'Handcrafted Indian pottery, woven baskets, brass decor and textiles',
+      tagText: 'Certified GI Regional Crafts',
+      tagIcon: 'verified'
     },
-    {
-      id: 'reg-uttarakhand',
-      name: 'UTTARAKHAND',
-      tagline: 'Herbs, Handloom, Organic Products',
-      avatar: '/assets/hero/reg_uttarakhand.jpg',
-      stateQuery: 'Uttarakhand'
-    },
-    {
-      id: 'reg-kashmir',
-      name: 'JAMMU & KASHMIR',
-      tagline: 'Shawls, Dry Fruits, Handicrafts',
-      avatar: '/assets/hero/reg_kashmir.jpg',
-      stateQuery: 'Jammu & Kashmir'
-    },
-    {
-      id: 'reg-northeast',
-      name: 'NORTH EAST',
-      tagline: 'Handloom, Bamboo, Spices',
-      avatar: '/assets/hero/reg_northeast.jpg',
-      stateQuery: 'Assam'
-    },
-    {
-      id: 'reg-rajasthan',
-      name: 'RAJASTHAN',
-      tagline: 'Handicrafts, Textiles, Home Decor',
-      avatar: '/assets/hero/reg_rajasthan.jpg',
-      stateQuery: 'Rajasthan'
-    }
   ];
 
-  getCurvedOffset(index: number): string {
-    // Flipped / Opposite curve:
-    // Himachal (top): indented into section (-26px)
-    // Uttarakhand: slightly indented (-13px)
-    // J&K (center): extends furthest right (0px)
-    // North East: slightly indented (-13px)
-    // Rajasthan (bottom): indented into section (-26px)
-    const flippedOffsets = [-26, -13, 0, -13, -26];
-    const x = flippedOffsets[index] ?? 0;
-    return `translateX(${x}px)`;
+  ngOnInit() {
+    this.startAutoPlay();
   }
 
-  filterByRegion(stateName: string) {
-    this.market.updateFilter('state', stateName);
-    this.market.setView('catalogue');
+  ngOnDestroy() {
+    this.stopAutoPlay();
+  }
+
+  private startAutoPlay() {
+    this.stopAutoPlay();
+    if (this.slides.length > 1 && typeof window !== 'undefined') {
+      this.autoPlayTimer = setInterval(() => {
+        if (!this.isPaused()) {
+          this.nextSlide();
+        }
+      }, 5500);
+    }
+  }
+
+  private stopAutoPlay() {
+    if (this.autoPlayTimer) {
+      clearInterval(this.autoPlayTimer);
+      this.autoPlayTimer = null;
+    }
+  }
+
+  nextSlide() {
+    this.activeIndex.update(curr => (curr + 1) % this.slides.length);
+  }
+
+  prevSlide() {
+    this.activeIndex.update(curr => (curr - 1 + this.slides.length) % this.slides.length);
+  }
+
+  goToSlide(index: number) {
+    this.activeIndex.set(index);
   }
 }

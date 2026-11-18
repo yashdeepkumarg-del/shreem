@@ -54,6 +54,7 @@ export class MarketplaceService {
 
   // Selected entities for modals
   readonly selectedProduct = signal<Product | null>(null);
+  readonly previewProduct = signal<Product | null>(null);
   readonly selectedSeller = signal<Seller | null>(null);
   readonly selectedOrder = signal<Order | null>(null);
 
@@ -63,6 +64,8 @@ export class MarketplaceService {
   readonly isAccountModalOpen = signal<boolean>(false);
   readonly isFilterDrawerOpen = signal<boolean>(false);
   readonly isSearchOverlayOpen = signal<boolean>(false);
+  readonly isSupportModalOpen = signal<boolean>(false);
+  readonly activeSupportTab = signal<'track' | 'returns' | 'cancellation' | 'faqs' | 'contact'>('faqs');
 
   // Shopping Cart & Saved data
   readonly cartItems = signal<CartItem[]>([]);
@@ -345,11 +348,20 @@ export class MarketplaceService {
 
   // Product detail full-page navigation
   openProductDetail(product: Product) {
+    this.closeProductPreview();
     if (this.currentView() !== 'product-detail') {
       this.previousView.set(this.currentView());
     }
     this.selectedProduct.set(product);
     this.setView('product-detail');
+  }
+
+  openProductPreview(product: Product) {
+    this.previewProduct.set(product);
+  }
+
+  closeProductPreview() {
+    this.previewProduct.set(null);
   }
 
   backFromProductDetail() {
@@ -401,6 +413,19 @@ export class MarketplaceService {
 
   toggleFilterDrawer(open?: boolean) {
     this.isFilterDrawerOpen.update(v => open !== undefined ? open : !v);
+  }
+
+  openSupport(tab: 'track' | 'returns' | 'cancellation' | 'faqs' | 'contact' = 'faqs') {
+    this.activeSupportTab.set(tab);
+    this.isSupportModalOpen.set(true);
+  }
+
+  closeSupport() {
+    this.isSupportModalOpen.set(false);
+  }
+
+  toggleSupportModal(open?: boolean) {
+    this.isSupportModalOpen.update(v => open !== undefined ? open : !v);
   }
 
   // Place Order

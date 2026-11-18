@@ -563,7 +563,7 @@ export const MOCK_ORDERS: Order[] = [
     trackingSteps: [
       {
         title: 'Order Placed & DBT Escrow Initiated',
-        location: 'Bharat Shilp Central Server, New Delhi',
+        location: 'Shreem Central Server, New Delhi',
         date: '28 Oct, 10:30 AM',
         completed: true
       },
